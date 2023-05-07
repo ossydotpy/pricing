@@ -1,0 +1,12 @@
+#environmental variables
+*.env
+
+#log files
+*.log
+
+#cache
+cogs/__pycache__
+
+#misc
+verified_tokens.json
+get_all_minswap_tokens.py

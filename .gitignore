@@ -9,4 +9,8 @@ cogs/__pycache__
 
 #misc
 verified_tokens.json
+all_tokens.json
+
+#.py
 get_all_minswap_tokens.py
+testcode.py

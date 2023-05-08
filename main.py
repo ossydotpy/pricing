@@ -4,6 +4,7 @@ import os
 from dotenv import load_dotenv
 import asyncio
 import tracemalloc,logging
+import datetime
 from discord import Activity, ActivityType
 
 # Load environment variables from .env file
@@ -57,10 +58,10 @@ file_handler.setLevel(logging.INFO)
 logger.addHandler(file_handler)
 
 tracemalloc.start()
-
+timestamp=datetime.datetime.utcnow()
 
 async def main():  # Run the bot
-    logger.info('Bot is starting...')
+    logger.info(f'time:{timestamp} - Bot is starting...')
     await bot.start(TOKEN)
 
 

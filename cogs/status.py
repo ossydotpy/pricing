@@ -4,7 +4,6 @@ from discord.ext import commands, tasks
 import minswap.assets as minas
 import minswap.pools as pools
 import locale
-from decimal import Decimal, ROUND_HALF_UP
 
 locale.setlocale(locale.LC_ALL, "")
 import json
@@ -59,7 +58,8 @@ class StatusCog(commands.Cog):
     @tasks.loop(seconds=10)
     async def update_status(self):
         try:
-            token_to_ada_price = pools.get_pool_by_id(pool_id=self.pool_id).price[0].quantize(Decimal('0.0000000001'), rounding=ROUND_HALF_UP)
+            pool = pools.get_pool_by_id(self.pool_id)
+            token_to_ada_price = pool.price[0]
             if self.last_price is not None:
                 if token_to_ada_price > self.last_price:
                     price_change = "🔺"
@@ -74,7 +74,7 @@ class StatusCog(commands.Cog):
             if self.ticker:
                 activity = discord.Activity(
                     type=discord.ActivityType.watching,
-                    name=f"{price_change} ${self.ticker} price: {token_to_ada_price} ADA",
+                    name=f"{price_change} ${self.ticker} price: {token_to_ada_price:,.8f} ADA",
                 )
                 await self.bot.change_presence(activity=activity)
             else:

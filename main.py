@@ -3,7 +3,7 @@ from discord.ext import commands
 import os
 from dotenv import load_dotenv
 import asyncio
-import tracemalloc,logging
+import tracemalloc,logging,logging.handlers
 import datetime
 from discord import Activity, ActivityType
 
@@ -15,6 +15,7 @@ TOKEN = os.getenv("TEST_BOT")
 
 # Define intents
 intents = discord.Intents.all()
+intents.members = True
 
 # Create bot instance
 bot = commands.Bot(command_prefix=">", intents=intents)
@@ -50,18 +51,23 @@ async def on_command_error(ctx, error):
     else:
         await ctx.send("An error occurred while executing the command.")
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-
-file_handler = logging.FileHandler('discord.log')
-file_handler.setLevel(logging.INFO)
-logger.addHandler(file_handler)
-
 tracemalloc.start()
 timestamp=datetime.datetime.utcnow()
 
 async def main():  # Run the bot
-    logger.info(f'time:{timestamp} - Bot is starting...')
+    logger = logging.getLogger('discord')
+    logger.setLevel(logging.INFO)
+
+    handler = logging.handlers.RotatingFileHandler(
+        filename='discord.log',
+        encoding='utf-8',
+        maxBytes=32 * 1024 * 1024,  # 32 MiB
+        backupCount=5,  # Rotate through 5 files
+    )
+    dt_fmt = '%Y-%m-%d %H:%M:%S'
+    formatter = logging.Formatter('[{asctime}] [{levelname:<8}] {name}: {message}', dt_fmt, style='{')
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
     await bot.start(TOKEN)
 
 

@@ -4,8 +4,7 @@ import datetime
 from discord.ext import commands
 import minswap.assets as minas
 import minswap.pools as pools
-import locale
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import Decimal
 
 class PriceCog(commands.Cog):
     def __init__(self, bot):
@@ -34,18 +33,26 @@ class PriceCog(commands.Cog):
         token_hex = token_info["token_hex"]
         policy_id = token_info["policy_id"]
         pool_id = token_info["pool_id"]
-        supply= Decimal(token_info["supply"])
         # pool_plus_hex = policy_id+token_hex
 
         try:
-            token_ada_price = pools.get_pool_by_id(pool_id=pool_id).price[0]
-            marketcap = token_ada_price*supply
+            pool=pools.get_pool_by_id(pool_id=pool_id)
+
+            decimals = Decimal(10 ** minas.asset_decimals(pool.unit_b))
+            locked, minted = minas.circulating_asset(pool.unit_b)
+
+            circulating = Decimal(minted.quantity() - locked.quantity()) / decimals
+            token_ada_price = pool.price[0]
+            marketcap = token_ada_price*circulating
             
-            price_embed = discord.Embed(title=f"{ticker} price", color=discord.Color.from_rgb(102, 255, 51),timestamp=datetime.datetime.utcnow())
-            price_embed.add_field(name="Current Price", value=f"{token_ada_price.quantize(Decimal('0.0000000001'), rounding=ROUND_HALF_UP)} ADA",inline=False)
-            price_embed.add_field(name="░░░░░░░░░░░░░░░░░░░░░░░░░░░░", value="")
+            
+            price_embed = discord.Embed(title=f"information about {ticker}", color=discord.Color.from_rgb(102, 255, 51),timestamp=datetime.datetime.utcnow())
+            price_embed.add_field(name="Current Price", value=f"{token_ada_price:,.10f} ADA",inline=False)
+            price_embed.add_field(name="░░░░░░░░░░░░░░░░░░░░░░░░░░░", value="")
+            price_embed.add_field(name="Totoal Supply", value=f"{minted.quantity():,.0f}",inline=False)
+            price_embed.add_field(name="Circulating Supply", value=f"{circulating:,.0f}",inline=False)
             price_embed.add_field(name="Current MarketCap", 
-                                  value=f"{locale.currency(marketcap,grouping=True).replace(locale.localeconv()['currency_symbol'], '')} ADA",
+                                  value=f"{marketcap:,.0f} ADA",
                                   inline=False)
             await ctx.send(embed=price_embed)
         except Exception as e:

@@ -14,3 +14,5 @@ all_tokens.json
 #.py
 get_all_minswap_tokens.py
 testcode.py
+#csv
+*.csv

@@ -1,18 +1,21 @@
 import discord
+from discord import app_commands
+from discord.ext import commands
+from buttons import Buttons
 import json
 import datetime
-from discord.ext import commands
+from decimal import Decimal
+import asyncio
+
 import minswap.assets as minas
 import minswap.pools as pools
-import locale
-from decimal import Decimal, ROUND_HALF_UP
 
 class PriceCog(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.token_dict = {}
 
-        with open('verified_tokens.json') as tokens:
+        with open("verified_tokens.json") as tokens:
             data = json.load(tokens)
             for info in data:
                 for ticker, info in info.items():
@@ -24,33 +27,66 @@ class PriceCog(commands.Cog):
         else:
             return None
 
-    @commands.command()
-    async def price_of(self, ctx, ticker: str):
+    @app_commands.command(name="price_of")
+    async def price_of(self, interaction: discord.Interaction, ticker: str):
         token_info = self.get_token_info(ticker.upper())
         if not token_info:
-            await ctx.send(f"Invalid ticker: ${ticker.upper()}")
-            return
-
-        token_hex = token_info["token_hex"]
-        policy_id = token_info["policy_id"]
+            await interaction.response.send_message(f"Invalid ticker: ${ticker.upper()}",ephemeral=True)
+        # token_hex = token_info["token_hex"]
+        # policy_id = token_info["policy_id"]
         pool_id = token_info["pool_id"]
-        supply= Decimal(token_info["supply"])
         # pool_plus_hex = policy_id+token_hex
 
         try:
-            token_ada_price = pools.get_pool_by_id(pool_id=pool_id).price[0]
-            marketcap = token_ada_price*supply
-            
-            price_embed = discord.Embed(title=f"{ticker} price", color=discord.Color.from_rgb(102, 255, 51),timestamp=datetime.datetime.utcnow())
-            price_embed.add_field(name="Current Price", value=f"{token_ada_price.quantize(Decimal('0.0000000001'), rounding=ROUND_HALF_UP)} ADA",inline=False)
-            price_embed.add_field(name="░░░░░░░░░░░░░░░░░░░░░░░░░░░░", value="")
-            price_embed.add_field(name="Current MarketCap", 
-                                  value=f"{locale.currency(marketcap,grouping=True).replace(locale.localeconv()['currency_symbol'], '')} ADA",
-                                  inline=False)
-            await ctx.send(embed=price_embed)
+            pool = pools.get_pool_by_id(pool_id=pool_id)
+
+            decimals =Decimal(10 ** minas.asset_decimals(pool.unit_b))
+            locked, minted = minas.circulating_asset(pool.unit_b)
+
+            circulating = Decimal(minted.quantity() - locked.quantity()) / decimals
+            token_ada_price = pool.price[0]
+            marketcap = token_ada_price * circulating
+            diluted_cap = token_ada_price * minted.quantity()
+
+            price_embed = discord.Embed(
+                title=f"Results for ${ticker}.",
+                color=discord.Color.from_rgb(102, 255, 51),
+                timestamp=datetime.datetime.utcnow(),
+            )
+            price_embed.add_field(
+                name="Current Price", value=f"{token_ada_price:,.10f} ADA", inline=False
+            )
+            price_embed.add_field(name="░░░░░░░░░░░░░░░░░░░░░░░░░░░", value="")
+            price_embed.add_field(
+                name="Totoal Supply", value=f"{minted.quantity():,.0f}", inline=False
+            )
+            price_embed.add_field(
+                name="Circulating Supply", value=f"{circulating:,.0f}", inline=False
+            )
+            price_embed.add_field(
+                name="Current MarketCap", value=f"{marketcap:,.0f} ADA", inline=False
+            )
+            price_embed.add_field(
+                name="Diluted MarketCap", value=f"{diluted_cap:,.0f} ADA", inline=False
+            )
+            price_embed.set_footer(
+                text="like this, sponsor me $gimmeyourada",
+            )
+            view=Buttons()
+            view.add_item(discord.ui.Button(label="Report",style=discord.ButtonStyle.link,url="https://discordapp.com/users/638340154125189149"))
+
+            await interaction.response.send_message("please wait while we fetch",ephemeral=True)
+            asyncio.sleep(20)
+            await interaction.edit_original_response(embed=price_embed,view=view)
         except Exception as e:
             print(f"Error in price_check: {e}")
-            await ctx.send("An error occurred while fetching the price. Please try again later.")
+            
+            await interaction.response.send_message(
+                "An error occurred while fetching the price. Please try again later.",ephemeral=True
+            )
+
+            
+
 
 async def setup(bot):
     await bot.add_cog(PriceCog(bot))

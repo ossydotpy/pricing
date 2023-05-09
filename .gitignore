@@ -5,6 +5,7 @@
 *.log
 
 #cache
+__pycache__
 cogs/__pycache__
 
 #misc
@@ -16,3 +17,9 @@ get_all_minswap_tokens.py
 testcode.py
 #csv
 *.csv
+
+#csv
+*.csv
+
+#folder
+archive

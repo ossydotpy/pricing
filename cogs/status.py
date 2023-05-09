@@ -1,10 +1,10 @@
 import discord
 import asyncio
+from discord import app_commands
 from discord.ext import commands, tasks
 import minswap.assets as minas
 import minswap.pools as pools
 import locale
-from decimal import Decimal, ROUND_HALF_UP
 
 locale.setlocale(locale.LC_ALL, "")
 import json
@@ -39,19 +39,19 @@ class StatusCog(commands.Cog):
                     self.pool_plus_hex = self.policy_id + self.token_hex
 
     # set the token to watch
-    @commands.command()
+    @app_commands.command(name='watch')
     @commands.has_guild_permissions(administrator=True)
-    async def watch(self, ctx, ticker: str):
+    async def watch(self, interaction: discord.Interaction, ticker: str):
         with open("verified_tokens.json", "r") as f:
             tokens = json.load(f)
             if ticker.upper() in tokens[0]:
                 self.ticker = ticker.upper()
                 self.load_tokens()
-                await ctx.send(
+                await interaction.response.send_message(
                     f"bot is now monitoring ${self.ticker} price.\nPlease wait a minute or two for price to sync.\nThanks:)"
                 )
             else:
-                await ctx.send(
+                await interaction.response.send_message(
                     f"Could not find {ticker.upper()} in the veried tokens ."
                 )
 
@@ -59,7 +59,8 @@ class StatusCog(commands.Cog):
     @tasks.loop(seconds=10)
     async def update_status(self):
         try:
-            token_to_ada_price = pools.get_pool_by_id(pool_id=self.pool_id).price[0].quantize(Decimal('0.0000000001'), rounding=ROUND_HALF_UP)
+            pool = pools.get_pool_by_id(self.pool_id)
+            token_to_ada_price = pool.price[0]
             if self.last_price is not None:
                 if token_to_ada_price > self.last_price:
                     price_change = "🔺"
@@ -74,7 +75,7 @@ class StatusCog(commands.Cog):
             if self.ticker:
                 activity = discord.Activity(
                     type=discord.ActivityType.watching,
-                    name=f"{price_change} ${self.ticker} price: {token_to_ada_price} ADA",
+                    name=f"{price_change} ${self.ticker} price: {token_to_ada_price:,.8f} ADA",
                 )
                 await self.bot.change_presence(activity=activity)
             else:

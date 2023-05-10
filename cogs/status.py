@@ -40,20 +40,24 @@ class StatusCog(commands.Cog):
 
     # set the token to watch
     @app_commands.command(name='watch')
-    @commands.has_guild_permissions(administrator=True)
+    @commands.is_owner()
     async def watch(self, interaction: discord.Interaction, ticker: str):
-        with open("verified_tokens.json", "r") as f:
-            tokens = json.load(f)
-            if ticker.upper() in tokens[0]:
-                self.ticker = ticker.upper()
-                self.load_tokens()
-                await interaction.response.send_message(
-                    f"bot is now monitoring ${self.ticker} price.\nPlease wait a minute or two for price to sync.\nThanks:)"
-                )
-            else:
-                await interaction.response.send_message(
-                    f"Could not find {ticker.upper()} in the veried tokens ."
-                )
+        await interaction.response.defer(ephemeral=True)
+        try:
+            with open("verified_tokens.json", "r") as f:
+                tokens = json.load(f)
+                if ticker.upper() in tokens[0]:
+                    self.ticker = ticker.upper()
+                    self.load_tokens()
+                    await interaction.followup.send(
+                        f"bot is now monitoring ${self.ticker} price.\nPlease wait a minute or two for price to sync.\nThanks:)"
+                    )
+                else:
+                    await interaction.followup.send(
+                        f"Could not find {ticker.upper()} in the veried tokens ."
+                    )
+        except Exception as e:
+            await interaction.followup.send(e)
 
     # update the bot's status every 10 seconds
     @tasks.loop(seconds=10)
@@ -90,4 +94,5 @@ class StatusCog(commands.Cog):
 
 
 async def setup(bot):
-    await bot.add_cog(StatusCog(bot))
+     await bot.add_cog(StatusCog(bot) )
+                    #    guilds=discord.Object.id=1096587951586164756)

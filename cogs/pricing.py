@@ -29,6 +29,7 @@ class PriceCog(commands.Cog):
 
     @app_commands.command(name="price_of")
     async def price_of(self, interaction: discord.Interaction, ticker: str):
+        await interaction.response.defer()
         token_info = self.get_token_info(ticker.upper())
         if not token_info:
             await interaction.response.send_message(f"Invalid ticker: ${ticker.upper()}",ephemeral=True)
@@ -75,9 +76,9 @@ class PriceCog(commands.Cog):
             view=Buttons()
             view.add_item(discord.ui.Button(label="Report",style=discord.ButtonStyle.link,url="https://discordapp.com/users/638340154125189149"))
 
-            await interaction.response.send_message("please wait while we fetch",ephemeral=True)
-            asyncio.sleep(20)
-            await interaction.edit_original_response(embed=price_embed,view=view)
+            
+            await asyncio.sleep(6)
+            await interaction.followup.send(embed=price_embed,view=view)
         except Exception as e:
             print(f"Error in price_check: {e}")
             
@@ -89,4 +90,5 @@ class PriceCog(commands.Cog):
 
 
 async def setup(bot):
-    await bot.add_cog(PriceCog(bot))
+    await bot.add_cog(PriceCog(bot),)
+                    #    guilds=[discord.Object(id=1096587951586164756)])

@@ -42,6 +42,7 @@ class StatusCog(commands.Cog):
     @app_commands.command(name='watch')
     @commands.is_owner()
     async def watch(self, interaction: discord.Interaction, ticker: str):
+        """set discord bot status"""
         await interaction.response.defer(ephemeral=True)
         try:
             with open("verified_tokens.json", "r") as f:

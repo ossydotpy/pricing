@@ -29,10 +29,11 @@ class PriceCog(commands.Cog):
 
     @app_commands.command(name="price_of")
     async def price_of(self, interaction: discord.Interaction, ticker: str):
+        """check the price of your tokens"""
         await interaction.response.defer()
         token_info = self.get_token_info(ticker.upper())
         if not token_info:
-            await interaction.response.send_message(f"Invalid ticker: ${ticker.upper()}",ephemeral=True)
+            await interaction.followup(f"Invalid ticker: ${ticker.upper()}",ephemeral=True)
         # token_hex = token_info["token_hex"]
         # policy_id = token_info["policy_id"]
         pool_id = token_info["pool_id"]

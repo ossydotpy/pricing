@@ -90,10 +90,6 @@ async def on_command_error(ctx, error):
     else:
         await ctx.send("An error occurred while executing the command.")
 
-#buttons Class
-# class Buttons(discord.ui.View):
-#     def __init__(self, *, timeout=180):
-#         super().__init__(timeout=timeout)
 
 tracemalloc.start()
 timestamp=datetime.datetime.utcnow()

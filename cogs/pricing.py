@@ -28,12 +28,13 @@ class PriceCog(commands.Cog):
             return None
 
     @app_commands.command(name="price_of")
+    @commands.cooldown(rate=1, per=60.0)
     async def price_of(self, interaction: discord.Interaction, ticker: str):
         """check the price of your tokens"""
         await interaction.response.defer()
         token_info = self.get_token_info(ticker.upper())
         if not token_info:
-            await interaction.followup(f"Invalid ticker: ${ticker.upper()}",ephemeral=True)
+            await interaction.followup.send(f"Invalid ticker: ${ticker.upper()}",ephemeral=True)
         # token_hex = token_info["token_hex"]
         # policy_id = token_info["policy_id"]
         pool_id = token_info["pool_id"]
@@ -41,6 +42,7 @@ class PriceCog(commands.Cog):
 
         try:
             pool = pools.get_pool_by_id(pool_id=pool_id)
+            tvl = pool.tvl
 
             decimals =Decimal(10 ** minas.asset_decimals(pool.unit_b))
             locked, minted = minas.circulating_asset(pool.unit_b)
@@ -56,7 +58,7 @@ class PriceCog(commands.Cog):
                 timestamp=datetime.datetime.utcnow(),
             )
             price_embed.add_field(
-                name="Current Price", value=f"{token_ada_price:,.10f} ADA", inline=False
+                name="Current Price", value=f"{token_ada_price:,.10f} ₳", inline=False
             )
             price_embed.add_field(name="░░░░░░░░░░░░░░░░░░░░░░░░░░░", value="")
             price_embed.add_field(
@@ -66,13 +68,16 @@ class PriceCog(commands.Cog):
                 name="Circulating Supply", value=f"{circulating:,.0f}", inline=False
             )
             price_embed.add_field(
-                name="Current MarketCap", value=f"{marketcap:,.0f} ADA", inline=False
+                name="Current MarketCap", value=f"{marketcap:,.0f} ₳", inline=False
             )
             price_embed.add_field(
-                name="Diluted MarketCap", value=f"{diluted_cap:,.0f} ADA", inline=False
+                name="Diluted MarketCap", value=f"{diluted_cap:,.0f} ₳", inline=False
             )
             price_embed.set_footer(
                 text="like this, sponsor me $gimmeyourada",
+            )
+            price_embed.add_field(
+                name="tetvl",value=f"{tvl:,.0f} ₳"
             )
             view=Buttons()
             view.add_item(discord.ui.Button(label="Report",style=discord.ButtonStyle.link,url="https://discordapp.com/users/638340154125189149"))
@@ -83,7 +88,7 @@ class PriceCog(commands.Cog):
         except Exception as e:
             print(f"Error in price_check: {e}")
             
-            await interaction.response.send_message(
+            await interaction.followup.send(
                 "An error occurred while fetching the price. Please try again later.",ephemeral=True
             )
 

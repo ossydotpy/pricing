@@ -10,7 +10,8 @@ import asyncio
 import minswap.assets as minas
 import minswap.pools as pools
 
-class PriceCog(commands.Cog):
+
+class TokenInfo(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
         self.token_dict = {}
@@ -34,7 +35,9 @@ class PriceCog(commands.Cog):
         await interaction.response.defer()
         token_info = self.get_token_info(ticker.upper())
         if not token_info:
-            await interaction.followup.send(f"Invalid ticker: ${ticker.upper()}",ephemeral=True)
+            await interaction.followup.send(
+                f"Invalid ticker: ${ticker.upper()}", ephemeral=True
+            )
         # token_hex = token_info["token_hex"]
         # policy_id = token_info["policy_id"]
         pool_id = token_info["pool_id"]
@@ -44,7 +47,7 @@ class PriceCog(commands.Cog):
             pool = pools.get_pool_by_id(pool_id=pool_id)
             tvl = pool.tvl
 
-            decimals =Decimal(10 ** minas.asset_decimals(pool.unit_b))
+            decimals = Decimal(10 ** minas.asset_decimals(pool.unit_b))
             locked, minted = minas.circulating_asset(pool.unit_b)
 
             circulating = Decimal(minted.quantity() - locked.quantity()) / decimals
@@ -76,25 +79,34 @@ class PriceCog(commands.Cog):
             price_embed.set_footer(
                 text="like this, sponsor me $gimmeyourada",
             )
-            price_embed.add_field(
-                name="tetvl",value=f"{tvl:,.0f} ₳"
+            price_embed.add_field(name="tetvl", value=f"{tvl:,.0f} ₳")
+            view = Buttons()
+            view.add_item(
+                discord.ui.Button(
+                    label="Report",
+                    style=discord.ButtonStyle.link,
+                    url="https://discordapp.com/users/638340154125189149",
+                )
             )
-            view=Buttons()
-            view.add_item(discord.ui.Button(label="Report",style=discord.ButtonStyle.link,url="https://discordapp.com/users/638340154125189149"))
 
-            
             await asyncio.sleep(6)
-            await interaction.followup.send(embed=price_embed,view=view)
-        except Exception as e:
-            print(f"Error in price_check: {e}")
-            
             await interaction.followup.send(
-                "An error occurred while fetching the price. Please try again later.",ephemeral=True
+                embed=price_embed, view=view, ephemeral=True
             )
+        except Exception as e:
+            await interaction.followup.send(
+                "rare error encountered, please try again later", ephemeral=True
+            )
+            print(f"Error in price_check: {e}")
 
-            
+            await interaction.followup.send(
+                "An error occurred while fetching the price. Please try again later.",
+                ephemeral=True,
+            )
 
 
 async def setup(bot):
-    await bot.add_cog(PriceCog(bot),)
-                    #    guilds=[discord.Object(id=1096587951586164756)])
+    await bot.add_cog(
+        TokenInfo(bot),
+    )
+    #    guilds=[discord.Object(id=1096587951586164756)])

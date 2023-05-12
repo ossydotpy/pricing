@@ -1,11 +1,12 @@
 import discord
 from discord.ext import commands
-from discord.ui import view 
+from discord.ui import view
 
 
 class Buttons(discord.ui.View):
     def __init__(self, *, timeout=180):
         super().__init__(timeout=timeout)
+
     # @discord.ui.button(label="delete",style=discord.ButtonStyle.url) # or .primary
     # async def blurple_button(self,button:discord.ui.Button,interaction:discord.Interaction):
     #     await interaction.message.delete(view=self)
@@ -26,10 +27,15 @@ class Buttons(discord.ui.View):
     #     for child in self.children:
     #         child.disabled=True
     #     await interaction.response.edit_message(view=self)
+
+# this is a test code
 class Huttons(discord.ui.View):
     def __init__(self, *, timeout=180):
         super().__init__(timeout=timeout)
-    @discord.ui.button(label="delete",style=discord.ButtonStyle.danger) # or .primary
-    async def blurple_button(self,button:discord.ui.Button,interaction:discord.Interaction):
-        button.disabled=False
+
+    @discord.ui.button(label="delete", style=discord.ButtonStyle.danger)  # or .primary
+    async def blurple_button(
+        self, button: discord.ui.Button, interaction: discord.Interaction
+    ):
+        button.disabled = False
         await interaction.delete_original_response(view=self)

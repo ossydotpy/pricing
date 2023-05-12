@@ -2,13 +2,14 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 
+
 class Admin(commands.Cog):
-    def __init__(self,bot: commands.Bot):
-        self.bot=bot
+    def __init__(self, bot: commands.Bot):
+        self.bot = bot
 
     @app_commands.command(name="load")
     @commands.is_owner()
-    async def load(self,interaction: discord.Interaction,extension: str):
+    async def load(self, interaction: discord.Interaction, extension: str):
         """load cogs"""
         await interaction.response.defer(ephemeral=True)
         try:
@@ -19,7 +20,7 @@ class Admin(commands.Cog):
 
     @app_commands.command(name="unload")
     @commands.is_owner()
-    async def unload(self,interaction: discord.Interaction,extension: str):
+    async def unload(self, interaction: discord.Interaction, extension: str):
         """unload cogs"""
         await interaction.response.defer(ephemeral=True)
         try:
@@ -30,7 +31,7 @@ class Admin(commands.Cog):
 
     @app_commands.command(name="reload")
     @commands.is_owner()
-    async def reload(self,interaction: discord.Interaction,extension: str):
+    async def reload(self, interaction: discord.Interaction, extension: str):
         """reload cogs"""
         await interaction.response.defer(ephemeral=True)
         try:
@@ -39,5 +40,6 @@ class Admin(commands.Cog):
         except Exception as e:
             await interaction.followup.send(e)
 
+
 async def setup(bot):
-    await bot.add_cog(Admin(bot))
+    await bot.add_cog(Admin(bot), guilds=[discord.Object(id=1096587951586164756)])

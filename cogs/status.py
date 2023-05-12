@@ -39,7 +39,7 @@ class StatusCog(commands.Cog):
                     self.pool_plus_hex = self.policy_id + self.token_hex
 
     # set the token to watch
-    @app_commands.command(name='watch')
+    @app_commands.command(name="watch")
     @commands.is_owner()
     async def watch(self, interaction: discord.Interaction, ticker: str):
         """set discord bot status"""
@@ -95,5 +95,5 @@ class StatusCog(commands.Cog):
 
 
 async def setup(bot):
-     await bot.add_cog(StatusCog(bot) )
-                    #    guilds=discord.Object.id=1096587951586164756)
+    await bot.add_cog(StatusCog(bot))
+    #    guilds=discord.Object.id=1096587951586164756)

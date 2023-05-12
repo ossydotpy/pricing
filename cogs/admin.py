@@ -42,4 +42,6 @@ class Admin(commands.Cog):
 
 
 async def setup(bot):
-    await bot.add_cog(Admin(bot), guilds=[discord.Object(id=1096587951586164756)])
+    await bot.add_cog(Admin(bot),
+                    #    guilds=[discord.Object(id=1096587951586164756)]
+                       )

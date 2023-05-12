@@ -1,3 +1,4 @@
+from urllib.parse import urlencode
 import discord
 from discord import app_commands
 from discord.ext import commands
@@ -55,6 +56,15 @@ class TokenInfo(commands.Cog):
             marketcap = token_ada_price * circulating
             diluted_cap = token_ada_price * minted.quantity()
 
+            params = {
+            "currencySymbolA": "",
+            "tokenNameA": "",
+            "currencySymbolB": token_info["policy_id"],
+            "tokenNameB": token_info["token_hex"],
+        }
+
+            minswap_link = "https://app.minswap.org/swap?" + urlencode(params)
+
             price_embed = discord.Embed(
                 title=f"Results for ${ticker}.",
                 color=discord.Color.from_rgb(102, 255, 51),
@@ -63,23 +73,24 @@ class TokenInfo(commands.Cog):
             price_embed.add_field(
                 name="Current Price", value=f"{token_ada_price:,.10f} ₳", inline=False
             )
-            price_embed.add_field(name="░░░░░░░░░░░░░░░░░░░░░░░░░░░", value="")
+            # price_embed.add_field(name="░░░░░░░░░░░░░░░░░░░░░░░░░░░", value="")
+            # price_embed.add_field(
+            #     name="Totoal Supply", value=f"{minted.quantity():,.0f}", inline=False
+            # )
+            # price_embed.add_field(
+            #     name="Circulating Supply", value=f"{circulating:,.0f}", inline=False
+            # )
             price_embed.add_field(
-                name="Totoal Supply", value=f"{minted.quantity():,.0f}", inline=False
+                name="Current MarketCap", value=f"{marketcap:,.0f} ₳"
             )
-            price_embed.add_field(
-                name="Circulating Supply", value=f"{circulating:,.0f}", inline=False
-            )
-            price_embed.add_field(
-                name="Current MarketCap", value=f"{marketcap:,.0f} ₳", inline=False
-            )
-            price_embed.add_field(
-                name="Diluted MarketCap", value=f"{diluted_cap:,.0f} ₳", inline=False
-            )
+            price_embed.add_field(name="TVL", value=f"{tvl:,.0f} ₳")
+            # price_embed.add_field(
+            #     name="Diluted MarketCap", value=f"{diluted_cap:,.0f} ₳", inline=False
+            # )
             price_embed.set_footer(
-                text="like this, sponsor me $gimmeyourada",
+                text="like this?\nsponsor me: $gimmeyourada",
             )
-            price_embed.add_field(name="tetvl", value=f"{tvl:,.0f} ₳")
+            
             view = Buttons()
             view.add_item(
                 discord.ui.Button(
@@ -88,8 +99,16 @@ class TokenInfo(commands.Cog):
                     url="https://discordapp.com/users/638340154125189149",
                 )
             )
+            view.add_item(
+                discord.ui.Button(
+                    label=f"Buy ${ticker} on minswap",
+                    style=discord.ButtonStyle.green,
+                    url=f"{minswap_link}",
+                    emoji="<:mincat_blue:849414479866757171>",
+                )
+            )
 
-            await asyncio.sleep(6)
+            # await asyncio.sleep(3)
             await interaction.followup.send(
                 embed=price_embed, view=view, ephemeral=True
             )
@@ -98,11 +117,6 @@ class TokenInfo(commands.Cog):
                 "rare error encountered, please try again later", ephemeral=True
             )
             print(f"Error in price_check: {e}")
-
-            await interaction.followup.send(
-                "An error occurred while fetching the price. Please try again later.",
-                ephemeral=True,
-            )
 
 
 async def setup(bot):

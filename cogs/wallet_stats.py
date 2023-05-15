@@ -10,8 +10,7 @@ import json
 import jsonschema
 from jsonschema import validate
 
-import requests
-import asyncio
+import aiohttp
 from urllib.parse import urlencode
 from decimal import Decimal
 
@@ -54,6 +53,13 @@ class WalletStat(commands.Cog):
             return True
         except Exception as e:
             return None
+    
+    @staticmethod
+    async def send_api_request(self, apiurl, headers=None):
+        async with aiohttp.ClientSession() as session:
+            async with session.get(apiurl, headers=headers) as response:
+                data = await response.json()
+                return data, response.status
 
     def cooldown_for_everyone_but_me(
         interaction: discord.Interaction,
@@ -64,14 +70,18 @@ class WalletStat(commands.Cog):
 
     @app_commands.command(name="how_many")
     @app_commands.checks.dynamic_cooldown(cooldown_for_everyone_but_me)
+    @app_commands.describe(ticker="token name",stake_addr="Cardano Stake Address",
+                           hidden="Chooose whether you alone or whole chat sees your results")
     async def how_many(
-        self, interaction: discord.Interaction, ticker: str, stake_addr: str
+        self, interaction: discord.Interaction, ticker: str, stake_addr: str,hidden: bool
     ):
         """
         Checks how many tokens held by any stake address
-        input ticker and any stake address to begin
+        input ticker and any stake address to begin.
+
+        Write yes to hide your result.
         """
-        await interaction.response.defer()
+        await interaction.response.defer(ephemeral=hidden)
         # validate stake address starts with "stake"
         if not stake_addr.startswith("stake"):
             await interaction.followup.send(
@@ -104,13 +114,17 @@ class WalletStat(commands.Cog):
         # get assets in the stake address
         url = f"https://cardano-mainnet.blockfrost.io/api/v0/accounts/{stake_addr}/addresses/assets"
         header = {"PROJECT_ID": os.getenv("PROJECT_ID")}
-        response = requests.get(url=url, headers=header)
-        json_response = response.json()
+        response,status_code = await self.send_api_request(self,apiurl=url, headers=header)
+
+        if status_code==200:
+            json_response = response
+        else:
+            await interaction.followup.send("Please check the stake key you  provided!")
+            return
         schema = self.get_schema()
         # resonse validation
         if self.validate_json_schema(json_response, schemafile=schema) is not None:
             found_assets = []  # List to store the found assets
-            # Variable to store the total amount
 
             for item in json_response:
                 unit = item["unit"]
@@ -123,7 +137,7 @@ class WalletStat(commands.Cog):
 
             if found_assets:
                 total_embed = discord.Embed(
-                    title=f"${ticker.upper()} held by\n{stake_addr}?"
+                    title=f"${ticker.upper()} held by\n{stake_addr[:12]}?"
                 )
                 total_embed.add_field(
                     name="Token", value=f"${ticker.lower()}", inline=False
@@ -131,12 +145,12 @@ class WalletStat(commands.Cog):
 
                 for unit, amount in found_assets:
                     total_embed.add_field(
-                        name=f"Amount Held", value=f"{amount}", inline=False
+                        name=f"Amount Held", value=f"{float(amount):,.2f}", inline=True
                     )
                 total_embed.add_field(
                     name="Estimated Value",
-                    value=f"{price * Decimal(amount):.2f} ₳.",
-                    inline=False,
+                    value=f"{price * Decimal(amount):,.2f} ₳.",
+                    inline=True,
                 )
                 total_embed.set_footer(
                     text=f"requested by {interaction.user.name} at {datetime.now()}"
@@ -150,18 +164,18 @@ class WalletStat(commands.Cog):
                         emoji="<:mincat_blue:849414479866757171>",
                     )
                 )
-                asyncio.wait(1)
+                # await asyncio.sleep(1)
                 await interaction.followup.send(
                     embed=total_embed, view=view, ephemeral=True
                 )
             else:
-                asyncio.wait(1)
+                # await asyncio.sleep(1)
                 await interaction.followup.send(
                     f"No assets `${ticker}` found in the wallet provided",
                     ephemeral=True,
                 )
         else:
-            asyncio.wait(1)
+            # await asyncio.sleep(1)
             await interaction.followup.send(
                 "make sure you used a proper stake key.", ephemeral=True
             )

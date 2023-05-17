@@ -31,11 +31,15 @@ class TokenInfo(commands.Cog):
             return None
 
     @staticmethod
-    async def send_api_request(self, apiurl):
-        async with aiohttp.ClientSession() as session:
-            async with session.get(apiurl) as response:
-                data = await response.json()
-                return data, response.status
+    async def send_api_request(apiurl):
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(apiurl) as response:
+                    data = await response.json()
+                    return data, response.status
+        except aiohttp.ClientError as e:
+            print(f"An error occurred during the API request: {e}")
+            return None, None
 
     @app_commands.command(name="price_of")
     @commands.cooldown(rate=1, per=60.0)
@@ -43,10 +47,12 @@ class TokenInfo(commands.Cog):
         """check the price of your tokens"""
         await interaction.response.defer()
         token_info = self.get_token_info(ticker.strip().upper())
+        
         if not token_info:
             await interaction.followup.send(
                 f"Invalid ticker: ${ticker.upper()}", ephemeral=True
             )
+            return
         # token_hex = token_info["token_hex"]
         # policy_id = token_info["policy_id"]
         pool_id = token_info["pool_id"]

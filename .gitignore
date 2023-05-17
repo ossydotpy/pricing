@@ -12,6 +12,7 @@ cogs/__pycache__
 verified_tokens.json
 all_tokens.json
 *.json
+secrets.txt
 
 #.py
 get_all_minswap_tokens.py

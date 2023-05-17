@@ -11,6 +11,8 @@ import tracemalloc, logging, logging.handlers
 import datetime
 from discord import Activity, ActivityType
 
+# from buttons import VerificationModal
+
 # Load environment variables from .env file
 load_dotenv()
 MY_GUILD = discord.Object(id=os.getenv("TEST_SERVER_ID"))
@@ -39,7 +41,6 @@ async def on_ready():
                 print(f"{filename[:-3]} loaded successfully.")
             except Exception as e:
                 print(f"Error loading {filename}: {e}")
-
 
 @bot.command()
 @commands.guild_only()
@@ -85,19 +86,20 @@ async def on_app_command_error(
     interaction: discord.Interaction, error: app_commands.AppCommandError
 ):
     if isinstance(error, app_commands.CommandNotFound):
-        await interaction.response.send_message(
+        await interaction.followup.send(
             "Invalid command. Type !help for a list of available commands.",
             ephemeral=True,
         )
     elif isinstance(error, app_commands.CommandOnCooldown):
         timeRemaining = str(datetime.timedelta(seconds=int(error.retry_after)))
-        await interaction.response.send_message(
+        await interaction.followup.send(
             f"wait for `{timeRemaining}` to use command again!", ephemeral=True
         )
-    else:
-        await interaction.response.send_message(
-            "An error occurred while executing the command.", ephemeral=True
-        )
+    # else:
+    #     await interaction.followup.send(
+    #         "An error occurred while executing the command.", ephemeral=True
+    #     )
+    #     print(error.with_traceback())
 
 
 ## error handling for commands

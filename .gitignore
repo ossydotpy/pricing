@@ -18,6 +18,7 @@ secrets.txt
 get_all_minswap_tokens.py
 testcode.py
 cogs/asset_total.py
+get_volume.py
 #csv
 *.csv
 

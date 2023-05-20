@@ -2,7 +2,7 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 from typing import Literal, Optional
-from discord.ext.commands import Greedy, Context  # or a subclass of yours
+from discord.ext.commands import Greedy, Context
 
 import os
 from dotenv import load_dotenv
@@ -11,7 +11,6 @@ import tracemalloc, logging, logging.handlers
 import datetime
 from discord import Activity, ActivityType
 
-# from buttons import VerificationModal
 
 # Load environment variables from .env file
 load_dotenv()

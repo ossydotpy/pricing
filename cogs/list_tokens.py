@@ -4,24 +4,37 @@ from discord.ext import commands
 from buttons import Buttons
 
 import json
+from logfn import logging_setup
+
+token_list_log = logging_setup("logs/list_tokens.log","pricing.list_tokens")
 
 class TokenList(commands.Cog):
     def __init__(self,bot:commands.Bot) -> None:
         self.bot = bot
 
     @staticmethod
-    async def get_token_list():
-        async with open("verified_tokens.json") as f:
-            data = await json.load(f)
+    def get_token_list():
+        with open("verified_tokens.json") as f:
+            data = json.load(f)
         return data
     
     @app_commands.command(name="token_list")
-    @app_commands.checks.has_role("testorrrr🤓")
+    # @app_commands.checks.has_role("testorrrr🤓")
     async def token_list(self, interaction: discord.Interaction):
 
         await interaction.response.defer(ephemeral= True)
-        view= Buttons()
-        view.add_item(
+        try:
+            token_data = self.get_token_list()
+            if token_data:
+                token_list_embed = discord.Embed(title="📃 List of all registered tokens.")
+
+                for token_detail in token_data:
+                    for token_name in token_detail.keys():
+                        token_list_embed.add_field(name="",value=f"${token_name}")
+                        
+                token_list_embed.set_thumbnail(url="https://i.ibb.co/m8srJ7S/logo.jpg")
+                view= Buttons()
+                view.add_item(
                     discord.ui.Button(
                         label="Submit Token Registraion",
                         emoji="<:logo:1107985387361685504>",
@@ -29,20 +42,17 @@ class TokenList(commands.Cog):
                         url="https://discordapp.com/users/638340154125189149",
                     )
                 )
-        try:
-            data = self.get_token_list()
-            token_list_embed = discord.Embed(title="📃 List of all registered tokens.")
-
-            for token_detail in data:
-                for token_name in token_detail.keys():
-                    token_list_embed.add_field(name="",value=f"${token_name}")
-            token_list_embed.set_thumbnail(url="https://i.ibb.co/m8srJ7S/logo.jpg")
-            await interaction.followup.send(embed=token_list_embed,ephemeral=True,view=view)
-            return
+                await interaction.followup.send(embed=token_list_embed,ephemeral=True,view=view)
+                
+            else:
+                await interaction.followup.send(content="No registered token found")
+                token_list_log.error("no verified token were found")
+        
         except Exception as e:
             await interaction.followup.send("an error occured!, try again")
-            print(e)
-            return
+            print(e.with_traceback())
+            # token_list_log.error(f"user {interaction.user.name} tried accessing command without required roles")
+            
 
 
 async def setup(bot):

@@ -11,6 +11,9 @@ import aiohttp
 import minswap.assets as minas
 import minswap.pools as pools
 
+from logfn import logging_setup
+
+price_check_log = logging_setup("logs/price_check.log","pricing.price_check")
 
 class TokenInfo(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -42,7 +45,7 @@ class TokenInfo(commands.Cog):
                     data = await response.json()
                     return data, response.status
         except aiohttp.ClientError as e:
-            print(f"An error occurred during the API request: {e}")
+            price_check_log.error(f"An error occurred during the API request: {e}")
             return None, None
 
     @app_commands.command(name="price_of")
@@ -91,7 +94,7 @@ class TokenInfo(commands.Cog):
 
 
                 price_embed = discord.Embed(
-                    title=f"Results for ${ticker}.",
+                    title=f"Results for ${ticker}<:verified:1094013188200218634>",
                     color=discord.Color.from_rgb(102, 255, 51),
                     timestamp=datetime.datetime.utcnow(),
                 )
@@ -108,7 +111,7 @@ class TokenInfo(commands.Cog):
                 )
                 price_embed.add_field(name="TVL", value=f"{tvl:,.0f} ₳")
                 price_embed.set_footer(
-                    text="like this?\nsponsor me: $gimmeyourada",
+                    text="☕ sponsor me: $gimmeyourada",
                 )
 
                 view = Buttons()
@@ -126,6 +129,7 @@ class TokenInfo(commands.Cog):
                         label="Report",
                         style=discord.ButtonStyle.link,
                         url="https://discordapp.com/users/638340154125189149",
+                        row=2
                     )
                 )
 
@@ -137,14 +141,14 @@ class TokenInfo(commands.Cog):
                 await interaction.followup.send(
                    file=discord.File("src/img/on_error.png"), ephemeral=True
                 )
-                # print(status)
+                price_check_log.error("error from cmc.json")
                 return
 
         except Exception as e:
             await interaction.followup.send(
-                file=discord.File("exceptio"), ephemeral=True
+               "server errror! try agin later", ephemeral=True
             )
-            print(f"Error in price_check: {e.with_traceback()}")
+            price_check_log.error(f"Error in price_check: {e.with_traceback()}")
             return
 
 

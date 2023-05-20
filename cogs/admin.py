@@ -1,57 +1,52 @@
+# app_commands.check()
 import discord
-from discord import app_commands
 from discord.ext import commands
+from logfn import logging_setup
 
-import os
-from dotenv import load_dotenv
+admin_logs = logging_setup("logs/admin.log","pricing.admin")
 
-load_dotenv()
-OWNER_ID = int(os.getenv("OWNER_ID"))
 class Admin(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @app_commands.command(name="load")
-    async def load(self, interaction: discord.Interaction, extension: str):
-        """reload cogs"""
-        await interaction.response.defer(ephemeral=True)
-        if interaction.user.id == OWNER_ID:
-            try:
-                await self.bot.load_extension(f"cogs.{extension}")
-                await interaction.followup.send(f"{extension} loaded!")
-            except Exception as e:
-                await interaction.followup.send(e)
-        else:
-            await interaction.followup.send("this command is reserved for bot creator only")
+    @commands.command()
+    @commands.is_owner()
+    async def load(self, ctx, extension: str):
+        """load cogs"""
+        try:
+            await self.bot.load_extension(f"cogs.{extension}")
+            await ctx.send(f"{extension} loaded!")
+            admin_logs.error(f"{extension} loaded!")
+        except Exception as e:
+            await ctx.send("error")
+            admin_logs.error(f"error loading {extension} because {e}")
 
-    @app_commands.command(name="unload")
-    async def unload(self, interaction: discord.Interaction, extension: str):
-        """reload cogs"""
-        await interaction.response.defer(ephemeral=True)
-        if interaction.user.id == OWNER_ID:
-            try:
-                await self.bot.unload_extension(f"cogs.{extension}")
-                await interaction.followup.send(f"{extension} unloaded!")
-            except Exception as e:
-                await interaction.followup.send(e)
-        else:
-            await interaction.followup.send("this command is reserved for bot creator only")
+    @commands.command()
+    @commands.is_owner()
+    async def unload(self, ctx, extension: str):
+        """unload cogs"""
+        try:
+            await self.bot.unload_extension(f"cogs.{extension}")
+            await ctx.send(f"{extension} unloaded!")
+            admin_logs.error(f"{extension} unloaded!")
+        except Exception as e:
+            await ctx.send("error")
+            admin_logs.error(f"error unloading {extension} because {e}")
 
-    @app_commands.command(name="reload")
-    async def reload(self, interaction: discord.Interaction, extension: str):
+    @commands.command()
+    @commands.is_owner()
+    async def reload(self, ctx, extension: str):
         """reload cogs"""
-        await interaction.response.defer(ephemeral=True)
-        if interaction.user.id == OWNER_ID:
-            try:
-                await self.bot.reload_extension(f"cogs.{extension}")
-                await interaction.followup.send(f"{extension} reloaded!")
-            except Exception as e:
-                await interaction.followup.send(e)
-        else:
-            await interaction.followup.send("this command is reserved for bot creator only")
+        try:
+            await self.bot.reload_extension(f"cogs.{extension}")
+            await ctx.send(f"{extension} reloaded!")
+            admin_logs.error(f"{extension} reloaded!")
+        except Exception as e:
+            await ctx.send("error")
+            admin_logs.error(f"error reloading{extension} because {e}")
 
 
 async def setup(bot):
     await bot.add_cog(Admin(bot))
 
-# app_commands.check()
+# commands.check()

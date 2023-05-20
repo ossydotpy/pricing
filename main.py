@@ -10,11 +10,12 @@ import asyncio
 import tracemalloc, logging, logging.handlers
 import datetime
 from discord import Activity, ActivityType
+from logfn import logging_setup
 
+main_log = logging_setup("logs/main.log","pricing.main")
 
 # Load environment variables from .env file
 load_dotenv()
-MY_GUILD = discord.Object(id=os.getenv("TEST_SERVER_ID"))
 # Get bot token from environment variable
 TOKEN = os.getenv("TEST_BOT")
 
@@ -29,7 +30,7 @@ bot = commands.Bot(command_prefix=">", intents=intents)
 # Load cogs on startup
 @bot.event
 async def on_ready():
-    print("Bot is ready.")
+    logging.info("Bot is ready.")
     await bot.change_presence(
         activity=Activity(type=ActivityType.watching, name="PRICE ACTION")
     )
@@ -37,9 +38,9 @@ async def on_ready():
         if filename.endswith(".py"):
             try:
                 await bot.load_extension(f"cogs.{filename[:-3]}")
-                print(f"{filename[:-3]} loaded successfully.")
+                main_log.info(f"{filename[:-3]} loaded successfully.")
             except Exception as e:
-                print(f"Error loading {filename}: {e}")
+                main_log.error(f"Error loading {filename}: {e}")
 
 @bot.command()
 @commands.guild_only()
@@ -62,6 +63,7 @@ async def sync(
         await ctx.send(
             f"Synced {len(synced)} commands {'globally' if spec is None else 'to the current guild.'}"
         )
+        main_log.info(f"Synced {len(synced)} commands {'globally' if spec is None else 'to the current guild.'}")
         return
 
 
@@ -86,7 +88,7 @@ async def on_app_command_error(
 ):
     if isinstance(error, app_commands.CommandNotFound):
         await interaction.followup.send(
-            "Invalid command. Type !help for a list of available commands.",
+            "Invalid command.",
             ephemeral=True,
         )
     elif isinstance(error, app_commands.CommandOnCooldown):
@@ -94,6 +96,10 @@ async def on_app_command_error(
         await interaction.followup.send(
             f"wait for `{timeRemaining}` to use command again!", ephemeral=True
         )
+    # elif isinstance(error, app_commands.MissingRole):
+    #     await interaction.followup.send(
+    #         f"sorry You dont have the required permissions to use this command", ephemeral=True
+    #     )
     # else:
     #     await interaction.followup.send(
     #         "An error occurred while executing the command.", ephemeral=True
@@ -120,22 +126,6 @@ timestamp = datetime.datetime.utcnow()
 
 
 async def main():  # Run the bot
-    logger = logging.getLogger("discord")
-    logger.setLevel(logging.INFO)
-
-    handler = logging.handlers.RotatingFileHandler(
-        filename="discord.log",
-        encoding="utf-8",
-        maxBytes=32 * 1024 * 1024,  # 32 MiB
-        backupCount=5,  # Rotate through 5 files
-    )
-    dt_fmt = "%Y-%m-%d %H:%M:%S"
-    formatter = logging.Formatter(
-        "[{asctime}] [{levelname:<8}] {name}: {message}", dt_fmt, style="{"
-    )
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-
     await bot.start(TOKEN)
 
 

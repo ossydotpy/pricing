@@ -11,6 +11,7 @@ import jsonschema
 from jsonschema import validate
 
 import aiohttp
+import requests
 from urllib.parse import urlencode
 from decimal import Decimal
 
@@ -33,8 +34,7 @@ class WalletStat(commands.Cog):
                 for ticker, info in info.items():
                     self.token_dict[ticker] = info
 
-        # load json schema
-
+    # load json schema
     def get_schema(self):
         with open("stakeschema.json") as scheme:
             jsonscheme = json.load(scheme)
@@ -66,7 +66,7 @@ class WalletStat(commands.Cog):
     ) -> Optional[app_commands.Cooldown]:
         if interaction.user.id == 638340154125189149:
             return None
-        return app_commands.Cooldown(1, 1800.0)
+        return app_commands.Cooldown(1, 180.0)
 
     @app_commands.command(name="how_many")
     @app_commands.checks.dynamic_cooldown(cooldown_for_everyone_but_me)

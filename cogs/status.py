@@ -43,6 +43,7 @@ class StatusCog(commands.Cog):
 
     # set the token to watch
     @app_commands.command(name="watch")
+    @app_commands.checks.has_permissions(administrator=True)
     async def watch(self, interaction: discord.Interaction, ticker: str):
         """set discord bot status"""
         await interaction.response.defer(ephemeral=True)

@@ -86,20 +86,19 @@ async def on_message(message):
 async def on_app_command_error(
     interaction: discord.Interaction, error: app_commands.AppCommandError
 ):
-    if isinstance(error, app_commands.CommandNotFound):
-        await interaction.followup.send(
-            "Invalid command.",
-            ephemeral=True,
-        )
-    elif isinstance(error, app_commands.CommandOnCooldown):
+    if isinstance(error, app_commands.CommandOnCooldown):
         timeRemaining = str(datetime.timedelta(seconds=int(error.retry_after)))
-        await interaction.followup.send(
+        await interaction.response.send_messa(
             f"wait for `{timeRemaining}` to use command again!", ephemeral=True
         )
-    # elif isinstance(error, app_commands.MissingRole):
-    #     await interaction.followup.send(
-    #         f"sorry You dont have the required permissions to use this command", ephemeral=True
-    #     )
+    elif isinstance(error, app_commands.MissingPermissions):
+        await interaction.response.send_message(
+            f"sorry You dont have the required permissions to use this command", ephemeral=True
+        )
+    elif isinstance(error, app_commands.BotMissingPermissions):
+        await interaction.response.send_message(
+            f"sorry the bt doesnt have required permissions in this channel to perform that action", ephemeral=True
+        )
     # else:
     #     await interaction.followup.send(
     #         "An error occurred while executing the command.", ephemeral=True

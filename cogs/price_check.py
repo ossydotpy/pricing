@@ -1,3 +1,4 @@
+from typing import Optional
 from urllib.parse import urlencode
 import discord
 from discord import app_commands
@@ -48,8 +49,15 @@ class TokenInfo(commands.Cog):
             price_check_log.error(f"An error occurred during the API request: {e}")
             return None, None
 
+    def cooldown_for_everyone_but_me(
+        interaction: discord.Interaction,
+    ) -> Optional[app_commands.Cooldown]:
+        if interaction.user.id == 638340154125189149:
+            return None
+        return app_commands.Cooldown(1, 180.0)
+
     @app_commands.command(name="price_of")
-    @commands.cooldown(rate=1, per=60.0)
+    @app_commands.checks.dynamic_cooldown(cooldown_for_everyone_but_me)
     async def price_of(self, interaction: discord.Interaction, ticker: str):
         """check the price of your tokens"""
         await interaction.response.defer()
@@ -75,84 +83,89 @@ class TokenInfo(commands.Cog):
             circulating = Decimal(minted.quantity() - locked.quantity()) / decimals
             token_ada_price = pool.price[0]
             marketcap = token_ada_price * circulating
-
-
-            params = {
-                "currencySymbolA": "",
-                "tokenNameA": "",
-                "currencySymbolB": token_info["policy_id"],
-                "tokenNameB": token_info["token_hex"],
-            }
-
-            minswap_link = "https://app.minswap.org/swap?" + urlencode(params)
-
             volume_data = self.load_snapshot()
-            if volume_data:
-                for item in volume_data.values():
-                    if pool_id in item["pool_id"]:
-                        daily_volume = float(item["quote_volume"])
-
-
-                price_embed = discord.Embed(
-                    title=f"Results for ${ticker}<:verified:1094013188200218634>",
-                    color=discord.Color.from_rgb(102, 255, 51),
-                    timestamp=datetime.datetime.utcnow(),
-                )
-                price_embed.add_field(
-                    name="Current Price",
-                    value=f"{token_ada_price:,.10f} ₳",
-                    inline=False,
-                )
-                price_embed.add_field(
-                    name="Daily Volume", value=f"{(daily_volume):,.02f} ₳", inline=False
-                )
-                price_embed.add_field(
-                    name="Current MarketCap", value=f"{marketcap:,.0f} ₳"
-                )
-                price_embed.add_field(name="TVL", value=f"{tvl:,.0f} ₳")
-                price_embed.set_footer(
-                    text="☕ sponsor me: $gimmeyourada",
-                )
-
-                view = Buttons()
-                view.add_item(
-                    discord.ui.Button(
-                        label=f"Buy ${ticker} on minswap",
-                        style=discord.ButtonStyle.green,
-                        url=f"{minswap_link}",
-                        emoji="<:mincat_blue:849414479866757171>",
-                    )
-                )
-
-                view.add_item(
-                    discord.ui.Button(
-                        label="Report",
-                        style=discord.ButtonStyle.link,
-                        url="https://discordapp.com/users/638340154125189149",
-                        row=2
-                    )
-                )
-
-                # await asyncio.sleep(3)
-                await interaction.followup.send(
-                    embed=price_embed, view=view, ephemeral=True
-                )
-            else:
-                await interaction.followup.send(
-                   file=discord.File("src/img/on_error.png"), ephemeral=True
-                )
-                price_check_log.error("error from cmc.json")
-                return
 
         except Exception as e:
             await interaction.followup.send(
-               "server errror! try agin later", ephemeral=True
-            )
-            price_check_log.error(f"Error in price_check: {e.with_traceback()}")
+            "server errror! try again later", ephemeral=True)
+            price_check_log.error(f"pool or cmc {e}")
             return
+
+        params = {
+            "currencySymbolA": "",
+            "tokenNameA": "",
+            "currencySymbolB": token_info["policy_id"],
+            "tokenNameB": token_info["token_hex"],
+        }
+
+        minswap_link = "https://app.minswap.org/swap?" + urlencode(params)
+
+        if volume_data:
+            for item in volume_data.values():
+                if pool_id in item["pool_id"]:
+                    daily_volume = float(item["quote_volume"])
+
+
+            price_embed = discord.Embed(
+                title=f"Results for ${ticker}<:verified:1094013188200218634>",
+                color=discord.Color.from_rgb(102, 255, 51),
+                timestamp=datetime.datetime.utcnow(),
+            )
+            price_embed.add_field(
+                name="Current Price",
+                value=f"{token_ada_price:,.10f} ₳",
+                inline=False,
+            )
+            price_embed.add_field(
+                name="Daily Volume", value=f"{(daily_volume):,.02f} ₳", inline=False
+            )
+            price_embed.add_field(
+                name="Current MarketCap", value=f"{marketcap:,.0f} ₳"
+            )
+            price_embed.add_field(name="TVL", value=f"{tvl:,.0f} ₳")
+            price_embed.set_footer(
+                text="☕Buy me a coffee: \n$gimmeyourada",
+            )
+
+            view = Buttons()
+            view.add_item(
+                discord.ui.Button(
+                    label=f"Buy ${ticker} on minswap",
+                    style=discord.ButtonStyle.green,
+                    url=f"{minswap_link}",
+                    emoji="<:mincat_blue:849414479866757171>",
+                )
+            )
+
+            view.add_item(
+                discord.ui.Button(
+                    label="Report",
+                    style=discord.ButtonStyle.link,
+                    url="https://discordapp.com/users/638340154125189149",
+                    row=2
+                )
+            )
+
+            # await asyncio.sleep(3)
+            await interaction.followup.send(
+                embed=price_embed, view=view, ephemeral=True
+            )
+        else:
+            await interaction.followup.send(
+                file=discord.File("error sending embed."), ephemeral=True
+            )
+            price_check_log.error("error from embed side")
+            return
+
+        # except Exception as e:
+        # #     await interaction.followup.send(
+        # #        "server errror! try agin later", ephemeral=True
+        # #     )
+        #     price_check_log.error(f"Error in price_check: {e.with_traceback()}")
+        #     return
 
 
 async def setup(bot):
     await bot.add_cog(
-        TokenInfo(bot),
+        TokenInfo(bot)
     )

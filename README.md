@@ -26,11 +26,17 @@ With this function, users can easily check the amount of tokens held by any AdaH
 
 ### Display Token Price as Bot Status
 
-The ChainSmith Bot allows you to customize the bot's status to display real-time token prices. This feature provides an easy way for server members to stay updated on token prices without leaving Discord. Here's an example of the bot's status displaying token prices: ![botStatus.png](https://i.postimg.cc/85tg1ZbH/Screenshot-2023-05-22-140205.png)
+The ChainSmith Bot allows you to customize the bot's status to display real-time token prices. This feature provides an easy way for server members to stay updated on token prices without leaving Discord.
+
+Here's an example of the bot's status displaying token prices:
+
+&#x20;![botStatus.png](https://i.postimg.cc/85tg1ZbH/Screenshot-2023-05-22-140205.png)
 
 ### Token Information Example
 
-Here's an example of the token information displayed by the bot. This includes details such as token symbol, current price, trading volume, market cap, and TVL: ![image](https://user-images.githubusercontent.com/99814325/240354929-6004c2a9-262f-4dcc-abd9-76463bd51de4.png)
+Here's an example of the token information displayed by the bot. This includes details such as token symbol, current price, trading volume, market cap, and TVL:&#x20;
+
+![image](https://user-images.githubusercontent.com/99814325/240354929-6004c2a9-262f-4dcc-abd9-76463bd51de4.png)
 
 ### Wallet Info Example
 

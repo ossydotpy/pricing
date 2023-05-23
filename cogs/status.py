@@ -9,6 +9,9 @@ import locale
 locale.setlocale(locale.LC_ALL, "")
 import json
 
+from logfn import logging_setup
+
+status_log = logging_setup("logs/status.log","pricing.status")
 
 class StatusCog(commands.Cog):
     def __init__(self, bot, pool_id=None, policy_id=None, token_hex=None, ticker=None):
@@ -40,28 +43,32 @@ class StatusCog(commands.Cog):
 
     # set the token to watch
     @app_commands.command(name="watch")
-    @commands.is_owner()
+    @app_commands.checks.has_permissions(manage_messages = True)
     async def watch(self, interaction: discord.Interaction, ticker: str):
         """set discord bot status"""
         await interaction.response.defer(ephemeral=True)
         try:
             with open("verified_tokens.json", "r") as f:
                 tokens = json.load(f)
-                if ticker.upper() in tokens[0]:
-                    self.ticker = ticker.upper()
-                    self.load_tokens()
-                    await interaction.followup.send(
-                        f"bot is now monitoring ${self.ticker} price.\nPlease wait a minute or two for price to sync.\nThanks:)"
-                    )
-                else:
-                    await interaction.followup.send(
-                        f"Could not find {ticker.upper()} in the veried tokens ."
-                    )
         except Exception as e:
-            await interaction.followup.send(e)
+            await interaction.followup.send("server side error try again later")
+            status_log.error(f"loading verified tokens: {e}")
+            return
+        if ticker.upper() in tokens[0]:
+            self.ticker = ticker.upper()
+            self.load_tokens()
+            await interaction.followup.send(
+                f"bot is now monitoring ${self.ticker} price.\nPlease wait a minute or two for price to sync.\nThanks:)"
+            )
+            status_log.info(f"{interaction.user.name}-{interaction.user.id} has set status to {self.ticker}")
+        else:
+            await interaction.followup.send(
+                f"Could not find {ticker.upper()} in the veried tokens ."
+            )
+        
 
     # update the bot's status every 10 seconds
-    @tasks.loop(seconds=10)
+    @tasks.loop(seconds=20)
     async def update_status(self):
         try:
             pool = pools.get_pool_by_id(self.pool_id)
@@ -89,8 +96,9 @@ class StatusCog(commands.Cog):
                     name=f"Error fetching price for {self.ticker}",
                 )
                 await self.bot.change_presence(activity=activity)
+                status_log.warning("error in fetching price for status")
         except Exception as e:
-            print(f"Error in update_status: {e}")
+            status_log.error(f"Error in update_status: {e}")
         await asyncio.sleep(60)
 
 

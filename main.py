@@ -1,17 +1,21 @@
 import discord
 from discord import app_commands
 from discord.ext import commands
-from discord.ui import view
+from typing import Literal, Optional
+from discord.ext.commands import Greedy, Context
+
 import os
 from dotenv import load_dotenv
 import asyncio
-import tracemalloc, logging, logging.handlers
+import tracemalloc
 import datetime
 from discord import Activity, ActivityType
+from logfn import logging_setup
+
+main_log = logging_setup("logs/main.log","pricing.main")
 
 # Load environment variables from .env file
 load_dotenv()
-
 # Get bot token from environment variable
 TOKEN = os.getenv("TEST_BOT")
 
@@ -26,7 +30,7 @@ bot = commands.Bot(command_prefix=">", intents=intents)
 # Load cogs on startup
 @bot.event
 async def on_ready():
-    print("Bot is ready.")
+    main_log.info(f"Bot {bot.application_id} has logged in .")
     await bot.change_presence(
         activity=Activity(type=ActivityType.watching, name="PRICE ACTION")
     )
@@ -34,26 +38,22 @@ async def on_ready():
         if filename.endswith(".py"):
             try:
                 await bot.load_extension(f"cogs.{filename[:-3]}")
-                print(f"{filename[:-3]} loaded successfully.")
+                main_log.info(f"{filename[:-3]} loaded successfully.")
             except Exception as e:
-                print(f"Error loading {filename}: {e}")
-
-
-from typing import Literal, Optional
-from discord.ext import commands
-from discord.ext.commands import Greedy, Context  # or a subclass of yours
-
+                main_log.error(f"Error loading {filename}: {e}")
 
 @bot.command()
 @commands.guild_only()
 @commands.is_owner()
 async def sync(
-    ctx: Context,
-    guilds: Greedy[discord.Object],
-    spec: Optional[Literal["~", "*", ">"]] = None,
-) -> None:
+  ctx: Context, guilds: Greedy[discord.Object], spec: Optional[Literal["~", "*", "^"]] = None) -> None:
     if not guilds:
-        if spec == ">":
+        if spec == "~":
+            synced = await ctx.bot.tree.sync(guild=ctx.guild)
+        elif spec == "*":
+            ctx.bot.tree.copy_global_to(guild=ctx.guild)
+            synced = await ctx.bot.tree.sync(guild=ctx.guild)
+        elif spec == "^":
             ctx.bot.tree.clear_commands(guild=ctx.guild)
             await ctx.bot.tree.sync(guild=ctx.guild)
             synced = []
@@ -63,18 +63,8 @@ async def sync(
         await ctx.send(
             f"Synced {len(synced)} commands {'globally' if spec is None else 'to the current guild.'}"
         )
+        main_log.info(f"Synced {len(synced)} commands {'globally' if spec is None else 'to the current guild.'}")
         return
-
-    ret = 0
-    for guild in guilds:
-        try:
-            await ctx.bot.tree.sync(guild=guild)
-        except discord.HTTPException:
-            pass
-        else:
-            ret += 1
-
-    await ctx.send(f"Synced the tree to {ret}/{len(guilds)}.")
 
 
 @bot.event
@@ -96,20 +86,34 @@ async def on_message(message):
 async def on_app_command_error(
     interaction: discord.Interaction, error: app_commands.AppCommandError
 ):
-    if isinstance(error, app_commands.CommandNotFound):
-        await interaction.response.send_message(
-            "Invalid command. Type !help for a list of available commands.",
-            ephemeral=True,
-        )
-    elif isinstance(error, app_commands.CommandOnCooldown):
+    if isinstance(error, app_commands.CommandOnCooldown):
         timeRemaining = str(datetime.timedelta(seconds=int(error.retry_after)))
         await interaction.response.send_message(
             f"wait for `{timeRemaining}` to use command again!", ephemeral=True
         )
+        return
+    elif isinstance(error, app_commands.MissingPermissions):
+        await interaction.response.send_message(
+            f"sorry You dont have the required permissions to use this command", ephemeral=True
+        )
+        return
+    elif isinstance(error, app_commands.BotMissingPermissions):
+        await interaction.response.send_message(
+            f"sorry the bot doesn't have required permissions in this channel to perform that action", ephemeral=True
+        )
+        return
+    elif isinstance(error, app_commands.MissingPermissions):
+        await interaction.response.send_message(
+            f"sorry you don't have required permissions in this channel to perform that action", ephemeral=True
+        )
+        return
     else:
         await interaction.response.send_message(
             "An error occurred while executing the command.", ephemeral=True
         )
+        return
+    
+        main_log.error(error.with_traceback())
 
 
 ## error handling for commands
@@ -122,7 +126,7 @@ async def on_command_error(ctx, error):
                 "FAFO :imp: \n You don't have permission to use that command."
             )
         except discord.errors.Forbidden:
-            await ctx.reply("skill issue")
+            await ctx.reply("You're not the bot owner bruh")
         await ctx.message.delete()
 
 
@@ -130,24 +134,8 @@ tracemalloc.start()
 timestamp = datetime.datetime.utcnow()
 
 
-async def main():  # Run the bot
-    logger = logging.getLogger("discord")
-    logger.setLevel(logging.INFO)
-
-    handler = logging.handlers.RotatingFileHandler(
-        filename="discord.log",
-        encoding="utf-8",
-        maxBytes=32 * 1024 * 1024,  # 32 MiB
-        backupCount=5,  # Rotate through 5 files
-    )
-    dt_fmt = "%Y-%m-%d %H:%M:%S"
-    formatter = logging.Formatter(
-        "[{asctime}] [{levelname:<8}] {name}: {message}", dt_fmt, style="{"
-    )
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-
+async def main():  
     await bot.start(TOKEN)
 
-
+# Run the bot
 asyncio.run(main())

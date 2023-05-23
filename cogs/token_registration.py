@@ -40,7 +40,7 @@ class RegistrationCog(commands.Cog):
         with open("registered_users.json", "a") as file:
             if file.tell() != 0:
                 file.write(",\n")
-            json.dump(user_responses, file)
+            json.dump(user_responses, file,indent=4)
 
     async def ask_question(self, user, question):
         await user.send(question)

@@ -34,7 +34,11 @@ Here's an example of the token information displayed by the bot. This includes d
 
 ### Wallet Info Example
 
-Here's an example of the wallet information displayed by the bot. This includes the amount of tokens held and the estimated valuation in ADA: ![image](https://user-images.githubusercontent.com/99814325/240359861-e118ea62-f8b7-4bea-90a9-cdc7210e041d.png)
+Here's an example of the wallet information displayed by the bot. This includes the amount of tokens held and the estimated valuation in ADA:
+
+&#x20;![image](https://user-images.githubusercontent.com/99814325/240359861-e118ea62-f8b7-4bea-90a9-cdc7210e041d.png)
+
+
 
 Please note that the custom bot status can currently be changed by any admin from any server the bot is in. If you want to set a custom status that can't be changed by any other user, you'll need to contact the ChainSmith team to set up a custom bot specifically for your server.
 

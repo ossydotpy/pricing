@@ -1,5 +1,3 @@
-# app_commands.check()
-import discord
 from discord.ext import commands
 from logfn import logging_setup
 
@@ -16,10 +14,12 @@ class Admin(commands.Cog):
         try:
             await self.bot.load_extension(f"cogs.{extension}")
             await ctx.send(f"{extension} loaded!")
-            admin_logs.error(f"{extension} loaded!")
+            admin_logs.info(f"{extension} loaded!")
+            return
         except Exception as e:
             await ctx.send("error")
             admin_logs.error(f"error loading {extension} because {e}")
+            return
 
     @commands.command()
     @commands.is_owner()
@@ -28,10 +28,12 @@ class Admin(commands.Cog):
         try:
             await self.bot.unload_extension(f"cogs.{extension}")
             await ctx.send(f"{extension} unloaded!")
-            admin_logs.error(f"{extension} unloaded!")
+            admin_logs.info(f"{extension} unloaded!")
+            return
         except Exception as e:
             await ctx.send("error")
             admin_logs.error(f"error unloading {extension} because {e}")
+            return
 
     @commands.command()
     @commands.is_owner()
@@ -40,10 +42,12 @@ class Admin(commands.Cog):
         try:
             await self.bot.reload_extension(f"cogs.{extension}")
             await ctx.send(f"{extension} reloaded!")
-            admin_logs.error(f"{extension} reloaded!")
+            admin_logs.info(f"{extension} reloaded!")
+            return
         except Exception as e:
             await ctx.send("error")
             admin_logs.error(f"error reloading{extension} because {e}")
+            return
 
 
 async def setup(bot):

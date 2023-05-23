@@ -1,5 +1,5 @@
-import asyncio
-import os,json
+import aiohttp
+import os
 import re
 import requests
 from dotenv import load_dotenv
@@ -12,8 +12,15 @@ handle_policy_id = "f0ff48bbb7bbe9d59a40f1ce90e9e9d0ff5002ec48f232b49ca0fb9a"
 header = {"PROJECT_ID":os.getenv("PROJECT_ID")}
 base_url = "https://cardano-mainnet.blockfrost.io/api/v0/"
 
-async def resolve_handle(handle):
 
+async def send_api_request(apiurl, headers=None):
+    async with aiohttp.ClientSession() as session:
+      async with session.get(apiurl, headers=headers) as response:
+        data = await response.json()
+        return data, response.status
+
+async def resolve_handle(handle):
+    handle = handle.lower()
     hexcode = ''.join('{:02x}'.format(ord(c)) for c in str(handle))
     address_url = f"{base_url}assets/{handle_policy_id}{hexcode}/addresses"
     address_response =  requests.get(url=address_url, headers=header)
@@ -50,7 +57,3 @@ async def ss(address):
     else:
       print("unable to resolve that address")
       return
-
-
-
-asyncio.run(ss("$muddafudda"))

@@ -19,40 +19,33 @@ class TokenList(commands.Cog):
         return data
     
     @app_commands.command(name="token_list")
-    # @app_commands.checks.has_role("testorrrr🤓")
     async def token_list(self, interaction: discord.Interaction):
 
         await interaction.response.defer(ephemeral= True)
-        try:
-            token_data = self.get_token_list()
-            if token_data:
-                token_list_embed = discord.Embed(title="📃 List of all registered tokens.")
+        token_data = self.get_token_list()
+        if token_data:
+            token_list_embed = discord.Embed(title="📃 List of all registered tokens.")
 
-                for token_detail in token_data:
-                    for token_name in token_detail.keys():
-                        token_list_embed.add_field(name="",value=f"${token_name}")
-                        
-                token_list_embed.set_thumbnail(url="https://i.ibb.co/m8srJ7S/logo.jpg")
-                view= Buttons()
-                view.add_item(
-                    discord.ui.Button(
-                        label="Submit Token Registraion",
-                        emoji="<:logo:1107985387361685504>",
-                        style=discord.ButtonStyle.link,
-                        url="https://discordapp.com/users/638340154125189149",
-                    )
+            for token_detail in token_data:
+                for token_name in token_detail.keys():
+                    token_list_embed.add_field(name="",value=f"${token_name}")
+                    
+            token_list_embed.set_thumbnail(url="https://i.ibb.co/m8srJ7S/logo.jpg")
+            view= Buttons()
+            view.add_item(
+                discord.ui.Button(
+                    label="Submit Token Registraion",
+                    emoji="<:logo:1107985387361685504>",
+                    style=discord.ButtonStyle.link,
+                    url="https://discordapp.com/users/638340154125189149",
                 )
-                await interaction.followup.send(embed=token_list_embed,ephemeral=True,view=view)
-                
-            else:
-                await interaction.followup.send(content="No registered token found")
-                token_list_log.error("no verified token were found")
-        
-        except Exception as e:
-            await interaction.followup.send("an error occured!, try again")
-            print(e.with_traceback())
-            # token_list_log.error(f"user {interaction.user.name} tried accessing command without required roles")
+            )
+            await interaction.followup.send(embed=token_list_embed,ephemeral=True,view=view)
             
+        else:
+            await interaction.followup.send(content="No registered token found")
+        
+
 
 
 async def setup(bot):

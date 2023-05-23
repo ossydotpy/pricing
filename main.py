@@ -7,7 +7,7 @@ from discord.ext.commands import Greedy, Context
 import os
 from dotenv import load_dotenv
 import asyncio
-import tracemalloc, logging, logging.handlers
+import tracemalloc
 import datetime
 from discord import Activity, ActivityType
 from logfn import logging_setup
@@ -30,7 +30,7 @@ bot = commands.Bot(command_prefix=">", intents=intents)
 # Load cogs on startup
 @bot.event
 async def on_ready():
-    logging.info("Bot is ready.")
+    main_log.info(f"Bot {bot.application_id} has logged in .")
     await bot.change_presence(
         activity=Activity(type=ActivityType.watching, name="PRICE ACTION")
     )
@@ -88,22 +88,32 @@ async def on_app_command_error(
 ):
     if isinstance(error, app_commands.CommandOnCooldown):
         timeRemaining = str(datetime.timedelta(seconds=int(error.retry_after)))
-        await interaction.response.send_messa(
+        await interaction.response.send_message(
             f"wait for `{timeRemaining}` to use command again!", ephemeral=True
         )
+        return
     elif isinstance(error, app_commands.MissingPermissions):
         await interaction.response.send_message(
             f"sorry You dont have the required permissions to use this command", ephemeral=True
         )
+        return
     elif isinstance(error, app_commands.BotMissingPermissions):
         await interaction.response.send_message(
-            f"sorry the bt doesnt have required permissions in this channel to perform that action", ephemeral=True
+            f"sorry the bot doesn't have required permissions in this channel to perform that action", ephemeral=True
         )
-    # else:
-    #     await interaction.followup.send(
-    #         "An error occurred while executing the command.", ephemeral=True
-    #     )
-    #     print(error.with_traceback())
+        return
+    elif isinstance(error, app_commands.MissingPermissions):
+        await interaction.response.send_message(
+            f"sorry you don't have required permissions in this channel to perform that action", ephemeral=True
+        )
+        return
+    else:
+        await interaction.response.send_message(
+            "An error occurred while executing the command.", ephemeral=True
+        )
+        return
+    
+        main_log.error(error.with_traceback())
 
 
 ## error handling for commands
@@ -116,7 +126,7 @@ async def on_command_error(ctx, error):
                 "FAFO :imp: \n You don't have permission to use that command."
             )
         except discord.errors.Forbidden:
-            await ctx.reply("skill issue")
+            await ctx.reply("You're not the bot owner bruh")
         await ctx.message.delete()
 
 
@@ -124,8 +134,8 @@ tracemalloc.start()
 timestamp = datetime.datetime.utcnow()
 
 
-async def main():  # Run the bot
+async def main():  
     await bot.start(TOKEN)
 
-
+# Run the bot
 asyncio.run(main())

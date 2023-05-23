@@ -8,17 +8,14 @@ import os
 from datetime import datetime
 
 import json
-import jsonschema
 from jsonschema import validate
 
 import aiohttp
-import requests
 from urllib.parse import urlencode
 from decimal import Decimal
 
 from buttons import Buttons
 
-import minswap.assets as minas
 import minswap.pools as pools
 
 from logfn import logging_setup
@@ -88,7 +85,11 @@ class WalletStat(commands.Cog):
         Choose `True` to hide your result.
         """
     await interaction.response.defer(ephemeral=hide)
+
     query_term = address
+    if re.match("^stake", address):
+      query_term =  address[:12]
+
     # validate stake address starts with "stake"
     if not address.startswith(("stake", "$")):
       await interaction.followup.send(
@@ -106,6 +107,7 @@ class WalletStat(commands.Cog):
                                       ephemeral=True)
       return
 
+    asset_image = str(token_info["image"])
     asset_name = str(
       token_info["policy_id"] +
       token_info["token_hex"])  # name of assets as stored on the chain
@@ -136,7 +138,7 @@ class WalletStat(commands.Cog):
       json_response = response
     else:
       await interaction.followup.send(
-        "Please check the stake key you  provided!")
+        f"Please check the stake key you  provided!\nerror code {status_code}")
       return
     schema = self.get_schema()
     # resonse validation
@@ -167,6 +169,7 @@ class WalletStat(commands.Cog):
           value=f"{price * Decimal(amount):,.2f} ₳.",
           inline=True,
         )
+        total_embed.set_thumbnail(url=asset_image)
         total_embed.set_footer(
           text=f"requested by {interaction.user.name} at {datetime.now()}")
         view = Buttons()
@@ -177,6 +180,15 @@ class WalletStat(commands.Cog):
             url=minswap_link,
             emoji="<:mincat_blue:849414479866757171>",
           ))
+        view.add_item(
+          discord.ui.Button(
+          label="Support",
+          style=discord.ButtonStyle.link,
+          url="https://discord.gg/2sUZ3YShm6",
+          emoji="<:logo:1107985387361685504>",
+          row=2,
+          )
+        )
         # await asyncio.sleep(1)
         await interaction.followup.send(embed=total_embed,
                                         view=view,

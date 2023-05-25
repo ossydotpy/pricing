@@ -2,10 +2,6 @@
 
 Welcome to the ChainSmith Bot!
 
-### How Can I Get This Bot?
-
-The ChainSmith Bot is currently free to add to any [Discord](https://discord.com) server. Simply invite the bot to your server using the provided invite link.
-
 What Does This Bot Do?
 
 ### Query Token Prices
@@ -45,6 +41,10 @@ Here's an example of the wallet information displayed by the bot. This includes 
 &#x20;![image](https://user-images.githubusercontent.com/99814325/240359861-e118ea62-f8b7-4bea-90a9-cdc7210e041d.png)
 
 
+
+### How Can I Get This Bot?
+
+The ChainSmith Bot is currently free to add to any [Discord](https://discord.com) server. Simply invite the bot to your server using the provided invite link.
 
 Please note that the custom bot status can currently be changed by any admin from any server the bot is in. If you want to set a custom status that can't be changed by any other user, you'll need to contact the ChainSmith team to set up a custom bot specifically for your server.
 

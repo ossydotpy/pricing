@@ -24,7 +24,7 @@ intents = discord.Intents.all()
 intents.members = True
 
 # Create bot instance
-bot = commands.Bot(command_prefix="_", intents=intents)
+bot = commands.Bot(command_prefix=">", intents=intents)
 
 
 # Load cogs on startup
@@ -111,9 +111,9 @@ async def on_app_command_error(
         await interaction.response.send_message(
             "An error occurred while executing the command.", ephemeral=True
         )
-        return
-    
         main_log.error(error.with_traceback())
+        return
+        
 
 
 ## error handling for commands

@@ -24,7 +24,7 @@ intents = discord.Intents.all()
 intents.members = True
 
 # Create bot instance
-bot = commands.Bot(command_prefix=">", intents=intents)
+bot = commands.Bot(command_prefix="_", intents=intents)
 
 
 # Load cogs on startup

@@ -17,6 +17,7 @@ from decimal import Decimal
 from buttons import Buttons
 
 import minswap.pools as pools
+import minswap.assets as minas
 
 from logfn import logging_setup
 from resolve_ada_handle import resolve_handle
@@ -114,6 +115,7 @@ class WalletStat(commands.Cog):
     pool_id = token_info["pool_id"]
     pool = pools.get_pool_by_id(pool_id=pool_id)
     price = pool.price[0]
+    decimals = Decimal(10 ** minas.asset_decimals(pool.unit_b))
 
     params = {
       "currencySymbolA": "",
@@ -147,7 +149,7 @@ class WalletStat(commands.Cog):
 
       for item in json_response:
         unit = item["unit"]
-        amount = item["quantity"]
+        amount = Decimal(item["quantity"])/decimals
 
         if asset_name in str(unit):
           found_assets.append(

@@ -57,6 +57,7 @@ class TokenInfo(commands.Cog):
         return app_commands.Cooldown(1, 180.0)
 
     @app_commands.command(name="price_of")
+    @app_commands.describe(ticker = "input the coin's ticker without the $ sign")
     @app_commands.checks.dynamic_cooldown(cooldown_for_everyone_but_me)
     async def price_of(self, interaction: discord.Interaction, ticker: str):
         """check the price of your tokens"""
@@ -70,6 +71,7 @@ class TokenInfo(commands.Cog):
             return
 
         pool_id = token_info["pool_id"]
+        token_image = token_info["image"]
 
 
         try:
@@ -145,8 +147,8 @@ class TokenInfo(commands.Cog):
                     row=2
                 )
             )
+            price_embed.set_thumbnail(url=token_image)
 
-            # await asyncio.sleep(3)
             await interaction.followup.send(
                 embed=price_embed, view=view, ephemeral=True
             )
@@ -156,13 +158,6 @@ class TokenInfo(commands.Cog):
             )
             price_check_log.error("error from embed side")
             return
-
-        # except Exception as e:
-        # #     await interaction.followup.send(
-        # #        "server errror! try agin later", ephemeral=True
-        # #     )
-        #     price_check_log.error(f"Error in price_check: {e.with_traceback()}")
-        #     return
 
 
 async def setup(bot):

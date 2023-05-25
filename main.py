@@ -111,9 +111,9 @@ async def on_app_command_error(
         await interaction.response.send_message(
             "An error occurred while executing the command.", ephemeral=True
         )
-        return
-    
         main_log.error(error.with_traceback())
+        return
+        
 
 
 ## error handling for commands

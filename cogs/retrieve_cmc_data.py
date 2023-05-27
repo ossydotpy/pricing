@@ -2,10 +2,10 @@ import requests
 import json
 import logging, logging.handlers
 from discord.ext import commands, tasks
-from logfn import logging_setup
+from functions.custom_functions import logging_setup
 import asyncio
 
-retrieval_log = logging_setup("logs/retrieval.log", "pricing.retrieval")
+retrieval_log = logging_setup(f"logs/{__name__}.log", f"pricing.{__name__}")
 
 class RetrievalCog(commands.Cog):
     def __init__(self, bot):

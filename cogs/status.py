@@ -9,9 +9,9 @@ import locale
 locale.setlocale(locale.LC_ALL, "")
 import json
 
-from logfn import logging_setup
+from functions.custom_functions import logging_setup
 
-status_log = logging_setup("logs/status.log","pricing.status")
+status_log = logging_setup(f"logs/{__name__}.log",f"pricing.{__name__}")
 
 class StatusCog(commands.Cog):
     def __init__(self, bot, pool_id=None, policy_id=None, token_hex=None, ticker=None):

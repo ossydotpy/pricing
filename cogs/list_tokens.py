@@ -1,12 +1,12 @@
 import discord
 from discord import app_commands
 from discord.ext import commands
-from buttons import Buttons
+from functions.buttons import Buttons
 
 import json
-from logfn import logging_setup
+from functions.logfn import logging_setup
 
-token_list_log = logging_setup("logs/list_tokens.log","pricing.list_tokens")
+token_list_log = logging_setup(f"logs/{__name__}.log",f"pricing.{__name__}")
 
 class TokenList(commands.Cog):
     def __init__(self,bot:commands.Bot) -> None:

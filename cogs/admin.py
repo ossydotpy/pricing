@@ -1,7 +1,7 @@
 from discord.ext import commands
-from logfn import logging_setup
+from functions.custom_functions import logging_setup
 
-admin_logs = logging_setup("logs/admin.log","pricing.admin")
+admin_logs = logging_setup(f"logs/{__name__}.log",f"pricing.{__name__}")
 
 class Admin(commands.Cog):
     def __init__(self, bot: commands.Bot):

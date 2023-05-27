@@ -10,9 +10,9 @@ import asyncio
 import tracemalloc
 import datetime
 from discord import Activity, ActivityType
-from logfn import logging_setup
+from functions.custom_functions import logging_setup
 
-main_log = logging_setup("logs/main.log","pricing.main")
+main_log = logging_setup(f"logs/{__name__}.log",f"pricing.{__name__}")
 
 # Load environment variables from .env file
 load_dotenv()
@@ -24,7 +24,7 @@ intents = discord.Intents.all()
 intents.members = True
 
 # Create bot instance
-bot = commands.Bot(command_prefix=">", intents=intents)
+bot = commands.Bot(command_prefix="_", intents=intents)
 
 
 # Load cogs on startup

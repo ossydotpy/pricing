@@ -1,9 +1,31 @@
-import aiohttp
 import os
-import re
-import requests
+import logging
 from dotenv import load_dotenv
-from logfn import logging_setup
+import aiohttp,requests
+
+import json
+from jsonschema import validate
+
+
+
+# logging setup
+def logging_setup(log_file, log_name):
+    # Create the logger and set its level
+    logger = logging.getLogger(log_name)
+    logger.setLevel(logging.INFO)
+
+    # Create the file handler
+    handler = logging.FileHandler(log_file)
+
+    # Create the formatter and add it to the handler
+    dt_fmt = "%Y-%m-%d %H:%M:%S"
+    formatter = logging.Formatter("[{asctime}] [{levelname:<8}] {name}: {message}", dt_fmt, style="{")
+    handler.setFormatter(formatter)
+
+    # Add the handler to the logger
+    logger.addHandler(handler)
+
+    return logger
 
 handle_log = logging_setup("logs/main.log","pricing.handle")
 
@@ -12,13 +34,14 @@ handle_policy_id = "f0ff48bbb7bbe9d59a40f1ce90e9e9d0ff5002ec48f232b49ca0fb9a"
 header = {"PROJECT_ID":os.getenv("PROJECT_ID")}
 base_url = "https://cardano-mainnet.blockfrost.io/api/v0/"
 
-
-async def send_api_request(apiurl, headers=None):
+# send api requests asynchronously
+async def send_api_request(apiurl, headers=None, params = None):
     async with aiohttp.ClientSession() as session:
       async with session.get(apiurl, headers=headers) as response:
         data = await response.json()
         return data, response.status
 
+# resolve adahandle
 async def resolve_handle(handle):
     handle = handle.lower()
     hexcode = ''.join('{:02x}'.format(ord(c)) for c in str(handle))
@@ -41,19 +64,11 @@ async def resolve_handle(handle):
     else:
        handle_log.info("couldnt resolve user stake address")
        return None
-
-#test scenario
-async def ss(address):
-    if re.match(r"^\$",address):
-        stripped_address = address.strip("$")
-        stake_adress =  await resolve_handle(stripped_address)
-        print(stake_adress)
-    if stake_adress is not None:
-       stake_url = f"{base_url}accounts/{stake_adress}/addresses/assets"
-       response = requests.get(url=stake_url, headers=header)
-       if response.status_code == 200:
-          response = response.json()
-          print(response)
-    else:
-      print("unable to resolve that address")
-      return
+    
+# validate api response with schema file
+def validate_json_schema(api_response, schemafile):
+    try:
+        validate(api_response, schema=schemafile)
+        return True
+    except Exception as e:
+        return None

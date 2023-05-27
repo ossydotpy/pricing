@@ -14,15 +14,16 @@ import aiohttp
 from urllib.parse import urlencode
 from decimal import Decimal
 
-from buttons import Buttons
+from functions.buttons import Buttons
 
 import minswap.pools as pools
 import minswap.assets as minas
 
-from logfn import logging_setup
-from resolve_ada_handle import resolve_handle
+import functions.custom_functions as functions
+from functions.custom_functions import logging_setup
+# from functions.resolve_ada_handle import resolve_handle
 
-wallet_stats_log = logging_setup("logs/wallet_stats.log","pricing.wallet_stats")
+wallet_stats_log = logging_setup(f"logs/{__name__}.log",f"pricing.{__name__}")
 
 class WalletStat(commands.Cog):
 
@@ -51,19 +52,19 @@ class WalletStat(commands.Cog):
       return None
 
   # validate api response with schema file
-  def validate_json_schema(self, api_response, schemafile):
-    try:
-      validate(api_response, schema=schemafile)
-      return True
-    except Exception as e:
-      return None
+  # def validate_json_schema(self, api_response, schemafile):
+  #   try:
+  #     validate(api_response, schema=schemafile)
+  #     return True
+  #   except Exception as e:
+  #     return None
 
-  @staticmethod
-  async def send_api_request(self, apiurl, headers=None):
-    async with aiohttp.ClientSession() as session:
-      async with session.get(apiurl, headers=headers) as response:
-        data = await response.json()
-        return data, response.status
+  # @staticmethod
+  # async def send_api_request(self, apiurl, headers=None):
+  #   async with aiohttp.ClientSession() as session:
+  #     async with session.get(apiurl, headers=headers) as response:
+  #       data = await response.json()
+  #       return data, response.status
 
   def cooldown_for_everyone_but_me(
     interaction: discord.Interaction, ) -> Optional[app_commands.Cooldown]:
@@ -87,9 +88,7 @@ class WalletStat(commands.Cog):
         """
     await interaction.response.defer(ephemeral=hide)
 
-    query_term = address
-    if re.match("^stake", address):
-      query_term =  address[:12]
+    userinput = address
 
     # validate stake address starts with "stake"
     if not address.startswith(("stake", "$")):
@@ -100,7 +99,7 @@ class WalletStat(commands.Cog):
     # resolve the handle name
     if re.match(r"^\$.+",address):
             stripped_address = address.strip("$")
-            address =  await resolve_handle(stripped_address)
+            address =  await functions.resolve_handle(stripped_address)
 
     token_info = self.get_token_info(ticker.upper())
     if not token_info:
@@ -129,9 +128,7 @@ class WalletStat(commands.Cog):
     if address is not None:
     # get assets in the stake address
         url = f"https://cardano-mainnet.blockfrost.io/api/v0/accounts/{address}/addresses/assets"
-        response, status_code = await self.send_api_request(self,
-                                                            apiurl=url,
-                                                            headers=self.header)
+        response, status_code = await functions.send_api_request(apiurl=url,headers=self.header)
     else:
       await interaction.followup.send("unable to resolve that address")
       return
@@ -144,7 +141,7 @@ class WalletStat(commands.Cog):
       return
     schema = self.get_schema()
     # resonse validation
-    if self.validate_json_schema(json_response, schemafile=schema) is not None:
+    if functions.validate_json_schema(json_response, schemafile=schema) is not None:
       found_assets = []  # List to store the found assets
 
       for item in json_response:
@@ -157,7 +154,7 @@ class WalletStat(commands.Cog):
 
       if found_assets:
         total_embed = discord.Embed(
-          title=f"${ticker.upper()} held by\n{query_term}?")
+          title=f"${ticker.upper()} held by\n{userinput if userinput.startswith('$') else userinput[:12]}?")
         total_embed.add_field(name="Token",
                               value=f"${ticker.lower()}",
                               inline=False)

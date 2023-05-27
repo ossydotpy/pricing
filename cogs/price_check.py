@@ -3,7 +3,7 @@ from urllib.parse import urlencode
 import discord
 from discord import app_commands
 from discord.ext import commands
-from buttons import Buttons
+from functions.buttons import Buttons
 import json
 import datetime
 from decimal import Decimal
@@ -12,9 +12,9 @@ import aiohttp
 import minswap.assets as minas
 import minswap.pools as pools
 
-from logfn import logging_setup
+from functions.custom_functions import logging_setup
 
-price_check_log = logging_setup("logs/price_check.log","pricing.price_check")
+price_check_log = logging_setup(f"logs/{__name__}.log",f"pricing.{__name__}")
 
 class TokenInfo(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -114,20 +114,25 @@ class TokenInfo(commands.Cog):
                 timestamp=datetime.datetime.utcnow(),
             )
             price_embed.add_field(
-                name="Current Price",
+                name="Price",
                 value=f"{token_ada_price:,.10f} ₳",
                 inline=False,
             )
             price_embed.add_field(
-                name="Daily Volume", value=f"{(daily_volume):,.02f} ₳", inline=False
+                name="24h Volume", value=f"{(daily_volume):,.02f} ₳"
             )
             price_embed.add_field(
-                name="Current MarketCap", value=f"{marketcap:,.0f} ₳"
+                name="Diluted M.Cap", value=f"{marketcap:,.0f} ₳"
             )
             price_embed.add_field(name="TVL", value=f"{tvl:,.0f} ₳")
             price_embed.set_footer(
                 text="☕Buy me a coffee: \n$gimmeyourada",
             )
+            # if ticker.lower() in ["min","snek"]:
+            #     price_embed.add_field(name="",value=f"""side note:
+            #     for {ticker}, take marketcap as the fully diluted marketcap because there is an error in calculating the circulating supply.""")
+            # else:
+            #     pass
 
             view = Buttons()
             view.add_item(

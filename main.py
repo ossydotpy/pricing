@@ -107,11 +107,17 @@ async def on_app_command_error(
             f"sorry you don't have required permissions in this channel to perform that action", ephemeral=True
         )
         return
-    else:
+    elif isinstance(error, app_commands.CommandInvokeError):
         await interaction.response.send_message(
+            f"sorry you don't have required permissions in this channel to perform that action", ephemeral=True
+        )
+        return
+    else:
+        await interaction.response.defer()
+        await interaction.followup.send(
             "An error occurred while executing the command.", ephemeral=True
         )
-        main_log.error(error.with_traceback())
+        main_log.error(error)
         return
         
 

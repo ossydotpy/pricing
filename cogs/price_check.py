@@ -38,16 +38,6 @@ class TokenInfo(commands.Cog):
             volume_data = json.load(f)
         return volume_data
 
-    @staticmethod
-    async def send_api_request(apiurl):
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(apiurl) as response:
-                    data = await response.json()
-                    return data, response.status
-        except aiohttp.ClientError as e:
-            price_check_log.error(f"An error occurred during the API request: {e}")
-            return None, None
 
     def cooldown_for_everyone_but_me(
         interaction: discord.Interaction,
@@ -109,7 +99,7 @@ class TokenInfo(commands.Cog):
 
 
             price_embed = discord.Embed(
-                title=f"Results for ${ticker}<:verified:1094013188200218634>",
+                title=f"Results for ${ticker.upper()}<:verified:1094013188200218634>",
                 color=discord.Color.from_rgb(102, 255, 51),
                 timestamp=datetime.datetime.utcnow(),
             )
@@ -126,13 +116,8 @@ class TokenInfo(commands.Cog):
             )
             price_embed.add_field(name="TVL", value=f"{tvl:,.0f} ₳")
             price_embed.set_footer(
-                text="☕Buy me a coffee: \n$gimmeyourada",
+                text="☕Buy me a coffee: \n$chainsmith",
             )
-            # if ticker.lower() in ["min","snek"]:
-            #     price_embed.add_field(name="",value=f"""side note:
-            #     for {ticker}, take marketcap as the fully diluted marketcap because there is an error in calculating the circulating supply.""")
-            # else:
-            #     pass
 
             view = Buttons()
             view.add_item(
@@ -148,7 +133,7 @@ class TokenInfo(commands.Cog):
                 discord.ui.Button(
                     label="Report",
                     style=discord.ButtonStyle.link,
-                    url="https://discordapp.com/users/638340154125189149",
+                    url="https://discord.gg/2sUZ3YShm6",
                     row=2
                 )
             )

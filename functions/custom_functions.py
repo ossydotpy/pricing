@@ -1,9 +1,8 @@
 import os
 import logging
+from decimal import Decimal
 from dotenv import load_dotenv
 import aiohttp,requests
-
-import json
 from jsonschema import validate
 
 
@@ -15,7 +14,7 @@ def logging_setup(log_file, log_name):
     logger.setLevel(logging.INFO)
 
     # Create the file handler
-    handler = logging.FileHandler(log_file)
+    handler = logging.FileHandler(log_file,encoding='utf-8', errors='ignore')
 
     # Create the formatter and add it to the handler
     dt_fmt = "%Y-%m-%d %H:%M:%S"
@@ -46,9 +45,9 @@ async def resolve_handle(handle):
     handle = handle.lower()
     hexcode = ''.join('{:02x}'.format(ord(c)) for c in str(handle))
     address_url = f"{base_url}assets/{handle_policy_id}{hexcode}/addresses"
-    address_response =  requests.get(url=address_url, headers=header)
-    if address_response.status_code == 200:
-       address_response = address_response.json()
+    response =  requests.get(url=address_url, headers=header)
+    if response.status_code == 200:
+       address_response = response.json()
     else:
        handle_log.info("no address found for user handle")
        return None
@@ -64,7 +63,19 @@ async def resolve_handle(handle):
     else:
        handle_log.info("couldnt resolve user stake address")
        return None
-    
+
+
+# resolve address to stake 
+async def resolve_address(address):
+    url = f"{base_url}addresses/{address}"
+    response, status = await send_api_request(url,headers=header)
+    if status == 200:
+        stake = response["stake_address"]
+        return stake
+    else:
+        handle_log.info("couldnt resolve user stake address")
+        return None
+
 # validate api response with schema file
 def validate_json_schema(api_response, schemafile):
     try:
@@ -72,3 +83,8 @@ def validate_json_schema(api_response, schemafile):
         return True
     except Exception as e:
         return None
+    
+# get cardano price
+def get_cardano_usd_price():
+    res = requests.get("https://api.coingecko.com/api/v3/simple/price?ids=cardano&vs_currencies=usd").json()
+    return Decimal(res["cardano"]["usd"])

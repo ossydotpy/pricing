@@ -4,10 +4,10 @@ from discord import app_commands
 from discord.ext import commands, tasks
 import minswap.assets as minas
 import minswap.pools as pools
+import json
 import locale
 
 locale.setlocale(locale.LC_ALL, "")
-import json
 
 from functions.custom_functions import logging_setup
 
@@ -43,7 +43,7 @@ class StatusCog(commands.Cog):
 
     # set the token to watch
     @app_commands.command(name="watch")
-    @app_commands.checks.has_permissions(manage_messages = True)
+    @app_commands.checks.has_permissions(administrator = True)
     async def watch(self, interaction: discord.Interaction, ticker: str):
         """set discord bot status"""
         await interaction.response.defer(ephemeral=True)
@@ -60,19 +60,28 @@ class StatusCog(commands.Cog):
             await interaction.followup.send(
                 f"bot is now monitoring ${self.ticker} price.\nPlease wait a minute or two for price to sync.\nThanks:)"
             )
-            status_log.info(f"{interaction.user.name}-{interaction.user.id} has set status to {self.ticker}")
+            status_log.info(f"{interaction.user.name} {interaction.user.id} has set status to {self.ticker}")
         else:
             await interaction.followup.send(
                 f"Could not find {ticker.upper()} in the veried tokens ."
             )
         
 
-    # update the bot's status every 10 seconds
-    @tasks.loop(seconds=20)
+    # update the bot's status every 120 seconds
+    @tasks.loop(seconds=120)
     async def update_status(self):
         try:
             pool = pools.get_pool_by_id(self.pool_id)
+            if pool is None:
+                status_log.error("Failed to retrieve pool")
+                return
+            
+            if not hasattr(pool, 'price') or not pool.price:
+                status_log.error("Pool price data is missing or empty")
+                return
+            
             token_to_ada_price = pool.price[0]
+            
             if self.last_price is not None:
                 if token_to_ada_price > self.last_price:
                     price_change = "🔺"
@@ -82,24 +91,32 @@ class StatusCog(commands.Cog):
                     price_change = "🔹"
             else:
                 price_change = ""
+            
             self.last_price = token_to_ada_price
-
+            
             if self.ticker:
                 activity = discord.Activity(
                     type=discord.ActivityType.watching,
                     name=f"{price_change} ${self.ticker} price: {token_to_ada_price:,.8f} ADA",
                 )
-                await self.bot.change_presence(activity=activity)
+                try:
+                    await self.bot.change_presence(activity=activity)
+                except Exception as error:
+                    status_log.error(f"Failed to update presence: {error}")
             else:
                 activity = discord.Activity(
                     type=discord.ActivityType.watching,
                     name=f"Error fetching price for {self.ticker}",
                 )
-                await self.bot.change_presence(activity=activity)
-                status_log.warning("error in fetching price for status")
+                try:
+                    await self.bot.change_presence(activity=activity)
+                except Exception as error:
+                    status_log.error(f"Failed to update presence: {error}")
+                status_log.warning("Error fetching price for status")
         except Exception as e:
             status_log.error(f"Error in update_status: {e}")
-        await asyncio.sleep(60)
+
+        # await asyncio.sleep(60)
 
 
 async def setup(bot):

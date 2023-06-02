@@ -1,12 +1,12 @@
 import discord
 from discord import app_commands
 from discord.ext import commands
-from buttons import Buttons
+from functions.buttons import Buttons
 
 import json
-from logfn import logging_setup
+from functions.custom_functions import logging_setup
 
-token_list_log = logging_setup("logs/list_tokens.log","pricing.list_tokens")
+token_list_log = logging_setup(f"logs/{__name__}.log",f"pricing.{__name__}")
 
 class TokenList(commands.Cog):
     def __init__(self,bot:commands.Bot) -> None:
@@ -30,14 +30,14 @@ class TokenList(commands.Cog):
                 for token_name in token_detail.keys():
                     token_list_embed.add_field(name="",value=f"${token_name}")
                     
-            token_list_embed.set_thumbnail(url="https://i.ibb.co/m8srJ7S/logo.jpg")
+            token_list_embed.set_thumbnail(url="https://i.ibb.co/rvTpW2X/logo.png")
             view= Buttons()
             view.add_item(
                 discord.ui.Button(
                     label="Submit Token Registraion",
-                    emoji="<:logo:1107985387361685504>",
+                    emoji="<:transparentlogo:1114079453258203187>",
                     style=discord.ButtonStyle.link,
-                    url="https://discordapp.com/users/638340154125189149",
+                    url="https://discord.gg/2sUZ3YShm6",
                 )
             )
             await interaction.followup.send(embed=token_list_embed,ephemeral=True,view=view)

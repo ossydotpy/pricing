@@ -1,11 +1,10 @@
-import requests
+import aiohttp
 import json
-import logging, logging.handlers
 from discord.ext import commands, tasks
-from logfn import logging_setup
+from functions.custom_functions import logging_setup
 import asyncio
 
-retrieval_log = logging_setup("logs/retrieval.log", "pricing.retrieval")
+retrieval_log = logging_setup(f"logs/{__name__}.log", f"pricing.{__name__}")
 
 class RetrievalCog(commands.Cog):
     def __init__(self, bot):
@@ -18,22 +17,26 @@ class RetrievalCog(commands.Cog):
     @tasks.loop(minutes=15.0)
     async def retrieval_task(self):
         try:
-            response = requests.get('https://api-mainnet-prod.minswap.org/coinmarketcap/v2/pairs')
-            if response.status_code == 200:
-                data = response.json()
-                with open('snapshot.json', 'w') as f:
-                    json.dump(data, f)
-                retrieval_log.info("Snapshot updated successfully")
-            else:
-                retrieval_log.error("Failed to retrieve data")
-        except requests.exceptions.RequestException as e:
+            async with aiohttp.ClientSession() as session:
+                async with session.get('https://api-mainnet-prod.minswap.org/coinmarketcap/v2/pairs', timeout=30) as response:
+                    if response.status == 200:
+                        data = await response.json()
+                        with open('snapshot.json', 'w') as f:
+                            json.dump(data, f)
+                        retrieval_log.info("Snapshot updated successfully")
+                    else:
+                        retrieval_log.error("Failed to retrieve data")
+        except asyncio.TimeoutError:
+            retrieval_log.error("Request timed out")
+        except aiohttp.ClientError as e:
             retrieval_log.error(f"Request error: {e}")
         
-        await asyncio.sleep(30 * 60)  # Delay for 30 minutes
+        await asyncio.sleep(20 * 60)  # Delay for 30 minutes
 
     @retrieval_task.before_loop
     async def before_retrieval_task(self):
         await self.bot.wait_until_ready()
+
 
 
 async def setup(bot):

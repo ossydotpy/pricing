@@ -1,8 +1,8 @@
 import json
 from discord.ext import commands
-from logfn import logging_setup
+from functions.custom_functions import logging_setup
 
-addtokenlog = logging_setup("logs/register_tokens.log","pricing.register_tokens")
+addtokenlog = logging_setup(f"logs/{__name__}.log",f"pricing.{__name__}")
 
 class AddTokenCommand(commands.Cog):
     def __init__(self, bot):

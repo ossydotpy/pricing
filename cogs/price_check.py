@@ -3,7 +3,7 @@ from urllib.parse import urlencode
 import discord
 from discord import app_commands
 from discord.ext import commands
-from buttons import Buttons
+from functions.buttons import Buttons
 import json
 import datetime
 from decimal import Decimal
@@ -12,9 +12,9 @@ import aiohttp
 import minswap.assets as minas
 import minswap.pools as pools
 
-from logfn import logging_setup
+from functions.custom_functions import logging_setup
 
-price_check_log = logging_setup("logs/price_check.log","pricing.price_check")
+price_check_log = logging_setup(f"logs/{__name__}.log",f"pricing.{__name__}")
 
 class TokenInfo(commands.Cog):
     def __init__(self, bot: commands.Bot):
@@ -38,16 +38,6 @@ class TokenInfo(commands.Cog):
             volume_data = json.load(f)
         return volume_data
 
-    @staticmethod
-    async def send_api_request(apiurl):
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(apiurl) as response:
-                    data = await response.json()
-                    return data, response.status
-        except aiohttp.ClientError as e:
-            price_check_log.error(f"An error occurred during the API request: {e}")
-            return None, None
 
     def cooldown_for_everyone_but_me(
         interaction: discord.Interaction,
@@ -109,24 +99,24 @@ class TokenInfo(commands.Cog):
 
 
             price_embed = discord.Embed(
-                title=f"Results for ${ticker}<:verified:1094013188200218634>",
+                title=f"Results for ${ticker.upper()}<:verified:1094013188200218634>",
                 color=discord.Color.from_rgb(102, 255, 51),
                 timestamp=datetime.datetime.utcnow(),
             )
             price_embed.add_field(
-                name="Current Price",
+                name="Price",
                 value=f"{token_ada_price:,.10f} ₳",
                 inline=False,
             )
             price_embed.add_field(
-                name="Daily Volume", value=f"{(daily_volume):,.02f} ₳", inline=False
+                name="24h Volume", value=f"{(daily_volume):,.02f} ₳"
             )
             price_embed.add_field(
-                name="Current MarketCap", value=f"{marketcap:,.0f} ₳"
+                name="Diluted M.Cap", value=f"{marketcap:,.0f} ₳"
             )
             price_embed.add_field(name="TVL", value=f"{tvl:,.0f} ₳")
             price_embed.set_footer(
-                text="☕Buy me a coffee: \n$gimmeyourada",
+                text="☕Buy me a coffee: \n$chainsmith",
             )
 
             view = Buttons()
@@ -143,7 +133,7 @@ class TokenInfo(commands.Cog):
                 discord.ui.Button(
                     label="Report",
                     style=discord.ButtonStyle.link,
-                    url="https://discordapp.com/users/638340154125189149",
+                    url="https://discord.gg/2sUZ3YShm6",
                     row=2
                 )
             )

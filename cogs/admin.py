@@ -54,13 +54,15 @@ class Admin(commands.Cog):
     async def reloadall(self, ctx):
         """Reload all cogs"""
         try:
-            for cog_name in self.bot.extensions:
+            cog_names = list(self.bot.extensions.keys())  # Create a copy of the keys
+            for cog_name in cog_names:
                 await self.bot.reload_extension(cog_name)
             await ctx.send("All cogs reloaded!")
             admin_logs.info("All cogs reloaded!")
         except Exception as e:
             await ctx.send("Error occurred while reloading cogs.")
             admin_logs.error(f"Error reloading cogs: {e}")
+
 
 
 async def setup(bot):

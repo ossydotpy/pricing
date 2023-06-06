@@ -1,5 +1,4 @@
 import discord
-import asyncio
 from discord import app_commands
 from discord.ext import commands, tasks
 import minswap.assets as minas
@@ -68,7 +67,7 @@ class StatusCog(commands.Cog):
         
 
     # update the bot's status every 120 seconds
-    @tasks.loop(seconds=120)
+    @tasks.loop(seconds=15*60)
     async def update_status(self):
         try:
             pool = pools.get_pool_by_id(self.pool_id)

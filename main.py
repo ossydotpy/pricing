@@ -17,14 +17,14 @@ main_log = logging_setup(f"logs/{__name__}.log",f"pricing.{__name__}")
 # Load environment variables from .env file
 load_dotenv()
 # Get bot token from environment variable
-TOKEN = os.getenv("TEST_BOT")
+TOKEN = os.getenv("CHAINSMITH")
 
 # Define intents
 intents = discord.Intents.all()
 intents.members = True
 
 # Create bot instance
-bot = commands.Bot(command_prefix="_", intents=intents)
+bot = commands.Bot(command_prefix=":", intents=intents)
 
 
 # Load cogs on startup
@@ -108,8 +108,8 @@ async def on_app_command_error(
         )
         return
     elif isinstance(error, app_commands.CommandInvokeError):
-        await interaction.response.send_message(
-            f"sorry you don't have required permissions in this channel to perform that action", ephemeral=True
+        await interaction.followup.send(
+            f"invoke error", ephemeral=True
         )
         return
     else:

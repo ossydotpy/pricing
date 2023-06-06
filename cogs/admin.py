@@ -49,6 +49,19 @@ class Admin(commands.Cog):
             admin_logs.error(f"error reloading{extension} because {e}")
             return
 
+    @commands.command()
+    @commands.is_owner()
+    async def reloadall(self, ctx):
+        """Reload all cogs"""
+        try:
+            for cog_name in self.bot.extensions:
+                await self.bot.reload_extension(cog_name)
+            await ctx.send("All cogs reloaded!")
+            admin_logs.info("All cogs reloaded!")
+        except Exception as e:
+            await ctx.send("Error occurred while reloading cogs.")
+            admin_logs.error(f"Error reloading cogs: {e}")
+
 
 async def setup(bot):
     await bot.add_cog(Admin(bot))

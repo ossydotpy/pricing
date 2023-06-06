@@ -1,5 +1,8 @@
 #environmental variables
 *.env
+.dockerignore
+fly.toml
+Dockerfile
 
 #log files
 *.log
@@ -21,4 +24,5 @@ testcode.py
 
 #folder
 archive
-
+.vscode
+.venv

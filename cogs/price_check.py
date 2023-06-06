@@ -7,8 +7,6 @@ from functions.buttons import Buttons
 import json
 import datetime
 from decimal import Decimal
-import aiohttp
-
 import minswap.assets as minas
 import minswap.pools as pools
 
@@ -110,6 +108,9 @@ class TokenInfo(commands.Cog):
             )
             price_embed.add_field(
                 name="24h Volume", value=f"{(daily_volume):,.02f} ₳"
+            )
+            price_embed.add_field(
+                name="Supply", value=f"{circulating:,.0f}", inline=False
             )
             price_embed.add_field(
                 name="Diluted M.Cap", value=f"{marketcap:,.0f} ₳"

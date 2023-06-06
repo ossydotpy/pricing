@@ -68,7 +68,7 @@ class WalletStat(commands.Cog):
         """
     await interaction.response.defer(ephemeral= hide)
 
-    userinput = address if address.startswith('$') else (address[:12] if address.startswith('stake') else (address[:15]))
+    userinput = address if address.startswith('$') else (f"{address[:10]}...{address[-4:]}" if address.startswith('stake') else (address[:15]))
 
     # validate stake address starts with "stake"
     if not address.startswith(("stake", "$", "addr")):
@@ -140,20 +140,26 @@ class WalletStat(commands.Cog):
         total_embed = discord.Embed(
           title=f"${ticker.upper()} held by\n{userinput}")
         total_embed.add_field(name="Token",
-                              value=f"${ticker.lower()}",
+                              value=f"${ticker.upper()}",
                               inline=False)
 
         for unit, amount in found_assets:
           total_embed.add_field(name=f"Amount Held",
-                                value=f"{float(amount):,.2f} ~({float((amount*100)/circulating_supply):,.2f} %)",
+                                value=f"{float(amount):,.2f} ${ticker.lower()}",
                                 inline=True)
+          
         total_embed.add_field(
-          name="ADA Value (estimated)",
-          value=f"{price * Decimal(amount):,.2f} ₳.",
-          inline=True,
+          name="Percentage Held",
+          value=f"~ ({float((amount*100)/circulating_supply):,.4f} %)",
+          inline=False,
         )
         total_embed.add_field(
-          name="USD Value",
+          name="Value (ADA)",
+          value=f"{price * Decimal(amount):,.2f} ₳.",
+          inline=False,
+        )
+        total_embed.add_field(
+          name="Value (USD)",
           value=f"${price * Decimal(amount)* ada_usd:,.2f}.",
           inline=False,
         )

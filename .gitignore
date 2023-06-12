@@ -17,6 +17,7 @@ secrets.txt
 
 #.py
 testcode.py
+cogs/trending.py
 
 #csv
 *.csv

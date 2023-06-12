@@ -17,14 +17,14 @@ main_log = logging_setup(f"logs/{__name__}.log",f"pricing.{__name__}")
 # Load environment variables from .env file
 load_dotenv()
 # Get bot token from environment variable
-TOKEN = os.getenv("CHAINSMITH")
+TOKEN = os.getenv("TEST_BOT")
 
 # Define intents
 intents = discord.Intents.all()
 intents.members = True
 
 # Create bot instance
-bot = commands.Bot(command_prefix=">", intents=intents)
+bot = commands.Bot(command_prefix=":", intents=intents)
 
 
 # Load cogs on startup
@@ -111,6 +111,7 @@ async def on_app_command_error(
         await interaction.followup.send(
             f"invoke error", ephemeral=True
         )
+        main_log.error(error)
         return
     else:
         await interaction.response.defer()

@@ -76,17 +76,18 @@ class WalletStat(commands.Cog):
         "please use a valid Ada Handle or Stake key format", ephemeral=True)
       return
 
+
+    token_info = self.get_token_info(ticker.upper())
+    if not token_info:
+      await interaction.followup.send(f"Invalid ticker: ${ticker.upper()}", ephemeral=True)
+      return
+    
     # resolve the handle name
     if re.match(r"^\$.+",address):
       stripped_handle = address.strip("$")
       address =  await functions.resolve_handle(stripped_handle)
     elif re.match(r"^addr.+",address):
       address = await functions.resolve_address(address)
-
-    token_info = self.get_token_info(ticker.upper())
-    if not token_info:
-      await interaction.followup.send(f"Invalid ticker: ${ticker.upper()}", ephemeral=True)
-      return
 
     asset_image = str(token_info["image"])
     asset_name = str(

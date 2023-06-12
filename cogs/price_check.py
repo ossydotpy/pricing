@@ -11,6 +11,7 @@ import minswap.assets as minas
 import minswap.pools as pools
 
 from functions.custom_functions import logging_setup
+from functions.custom_functions import send_api_request
 
 price_check_log = logging_setup(f"logs/{__name__}.log",f"pricing.{__name__}")
 
@@ -61,6 +62,7 @@ class TokenInfo(commands.Cog):
         pool_id = token_info["pool_id"]
         token_image = token_info["image"]
 
+        volume_url=f"https://www.taptools.io/_next/data/Mnr9ZWE9UMN4us86xyAcT/charts/token.json?pairID=0be55d262b29f564998ff81efe21bdc0022621c12f15af08d0f2ddb1.{pool_id}&currency=ADA"
 
         try:
             pool = pools.get_pool_by_id(pool_id=pool_id)
@@ -73,7 +75,8 @@ class TokenInfo(commands.Cog):
             circulating = Decimal(minted.quantity() - locked.quantity()) / decimals
             token_ada_price = pool.price[0]
             marketcap = token_ada_price * circulating
-            volume_data = self.load_snapshot()
+            volume_data, volume_status = await send_api_request(apiurl=volume_url)
+            # volume_data = self.load_snapshot()
 
         except Exception as e:
             await interaction.followup.send(
@@ -90,10 +93,11 @@ class TokenInfo(commands.Cog):
 
         minswap_link = "https://app.minswap.org/swap?" + urlencode(params)
 
-        if volume_data:
-            for item in volume_data.values():
-                if pool_id in item["pool_id"]:
-                    daily_volume = float(item["quote_volume"])
+        if volume_status == 200:
+            daily_volume = volume_data["pageProps"]["pair"]["dailyVolume"]
+            # for item in volume_data.values():
+            #     if pool_id in item["pool_id"]:
+            #         daily_volume = float(item["quote_volume"])
 
 
             price_embed = discord.Embed(

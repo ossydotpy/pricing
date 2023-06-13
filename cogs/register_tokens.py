@@ -8,7 +8,7 @@ class AddTokenCommand(commands.Cog):
         self.bot = bot
         self.tokenregistrylog = logging_setup(f"logs/{__name__}.log",f"pricing.{__name__}")
 
-    @commands.command()
+    @commands.command(hidden=True)
     @commands.is_owner()
     async def addtoken(self, ctx, token_name, token_hex, policy_id, pool_id, supply, image):
         if not self.validate_inputs(token_name, token_hex, policy_id, pool_id, supply, image):
@@ -43,7 +43,7 @@ class AddTokenCommand(commands.Cog):
             return False
         return True
 
-    @commands.command()
+    @commands.command(hidden=True)
     @commands.is_owner()
     async def updatetoken(self, ctx, token_name, parameter, new_value):
         try:
@@ -66,7 +66,7 @@ class AddTokenCommand(commands.Cog):
             self.tokenregistrylog.error(e)
 
 
-    @commands.command()
+    @commands.command(hidden=True)
     @commands.is_owner()
     async def deletetoken(self, ctx, token_name):
         try:

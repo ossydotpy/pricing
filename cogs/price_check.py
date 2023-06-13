@@ -75,7 +75,7 @@ class TokenInfo(commands.Cog):
             circulating = Decimal(minted.quantity() - locked.quantity()) / decimals
             token_ada_price = pool.price[0]
             marketcap = token_ada_price * circulating
-            volume_data, volume_status = await send_api_request(apiurl=volume_url)
+            token_data, token_data_status = await send_api_request(apiurl=volume_url)
             # volume_data = self.load_snapshot()
 
         except Exception as e:
@@ -93,8 +93,9 @@ class TokenInfo(commands.Cog):
 
         minswap_link = "https://app.minswap.org/swap?" + urlencode(params)
 
-        if volume_status == 200:
-            daily_volume = volume_data["pageProps"]["pair"]["dailyVolume"]
+        if token_data_status == 200:
+            daily_volume = token_data["pageProps"]["pair"]["dailyVolume"]
+            holders = token_data["pageProps"]["pair"]["holders"]
             # for item in volume_data.values():
             #     if pool_id in item["pool_id"]:
             #         daily_volume = float(item["quote_volume"])
@@ -117,7 +118,10 @@ class TokenInfo(commands.Cog):
                 name="Supply", value=f"{circulating:,.0f}", inline=False
             )
             price_embed.add_field(
-                name="Diluted M.Cap", value=f"{marketcap:,.0f} ₳"
+                name="Holders", value=f"{holders:,.0f}", inline=True
+            )
+            price_embed.add_field(
+                name="Diluted M.Cap", value=f"{marketcap:,.0f} ₳",
             )
             price_embed.add_field(name="TVL", value=f"{tvl:,.0f} ₳")
             price_embed.set_footer(

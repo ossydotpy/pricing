@@ -25,7 +25,7 @@ intents.members = True
 
 # Create bot instance
 bot = commands.Bot(command_prefix=":", intents=intents)
-
+bot.remove_command("help")
 
 # Load cogs on startup
 @bot.event
@@ -42,7 +42,7 @@ async def on_ready():
             except Exception as e:
                 main_log.error(f"Error loading {filename}: {e}")
 
-@bot.command()
+@bot.command( hidden=True)
 @commands.guild_only()
 @commands.is_owner()
 async def sync(
@@ -121,7 +121,19 @@ async def on_app_command_error(
         main_log.error(error)
         return
         
-
+# Custom help command
+@bot.command()
+async def help(ctx):
+    """Show this help context"""
+    visible_commands = []
+    help_embed = discord.Embed(title='Help Context', color=discord.Color.red(), description='list of legacy commands')
+    for command in bot.commands:
+        if not command.hidden:
+            visible_commands.append(command)
+    visible_commands_str = '\n'.join([f'{bot.command_prefix}{command.name} -> {command.help}' for command in visible_commands])
+    help_embed.add_field(name="", value=f"{visible_commands_str}\n",inline=False)
+        
+    await ctx.send(embed=help_embed)
 
 ## error handling for commands
 @bot.event

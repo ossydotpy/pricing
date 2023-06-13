@@ -7,7 +7,7 @@ class Admin(commands.Cog):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
-    @commands.command()
+    @commands.command(hidden=True)
     @commands.is_owner()
     async def load(self, ctx, extension: str):
         """load cogs"""
@@ -21,7 +21,7 @@ class Admin(commands.Cog):
             admin_logs.error(f"error loading {extension} because {e}")
             return
 
-    @commands.command()
+    @commands.command(hidden=True)
     @commands.is_owner()
     async def unload(self, ctx, extension: str):
         """unload cogs"""
@@ -35,7 +35,7 @@ class Admin(commands.Cog):
             admin_logs.error(f"error unloading {extension} because {e}")
             return
 
-    @commands.command()
+    @commands.command(hidden=True)
     @commands.is_owner()
     async def reload(self, ctx, extension: str):
         """reload cogs"""
@@ -49,7 +49,7 @@ class Admin(commands.Cog):
             admin_logs.error(f"error reloading{extension} because {e}")
             return
 
-    @commands.command()
+    @commands.command(hidden=True)
     @commands.is_owner()
     async def reloadall(self, ctx):
         """Reload all cogs"""

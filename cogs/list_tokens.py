@@ -20,7 +20,9 @@ class TokenList(commands.Cog):
     
     @app_commands.command(name="token_list")
     async def token_list(self, interaction: discord.Interaction):
-
+        """
+        Show a list of verified tokens
+        """
         await interaction.response.defer(ephemeral= True)
         token_data = self.get_token_list()
         if token_data:

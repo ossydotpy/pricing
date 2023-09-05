@@ -12,20 +12,21 @@ import datetime
 from discord import Activity, ActivityType
 from functions.custom_functions import logging_setup
 
-main_log = logging_setup(f"logs/{__name__}.log",f"pricing.{__name__}")
+main_log = logging_setup(f"logs/{__name__}.log", f"pricing.{__name__}")
 
 # Load environment variables from .env file
 load_dotenv()
 # Get bot token from environment variable
-TOKEN = os.getenv("TEST_BOT")
+TOKEN = os.getenv("CHAINSMITH")
 
 # Define intents
 intents = discord.Intents.all()
 intents.members = True
 
 # Create bot instance
-bot = commands.Bot(command_prefix=":", intents=intents)
+bot = commands.Bot(command_prefix=">", intents=intents)
 bot.remove_command("help")
+
 
 # Load cogs on startup
 @bot.event
@@ -42,11 +43,15 @@ async def on_ready():
             except Exception as e:
                 main_log.error(f"Error loading {filename}: {e}")
 
-@bot.command( hidden=True)
+
+@bot.command(hidden=True)
 @commands.guild_only()
 @commands.is_owner()
 async def sync(
-  ctx: Context, guilds: Greedy[discord.Object], spec: Optional[Literal["~", "*", "^"]] = None) -> None:
+    ctx: Context,
+    guilds: Greedy[discord.Object],
+    spec: Optional[Literal["~", "*", "^"]] = None,
+) -> None:
     if not guilds:
         if spec == "~":
             synced = await ctx.bot.tree.sync(guild=ctx.guild)
@@ -63,7 +68,9 @@ async def sync(
         await ctx.send(
             f"Synced {len(synced)} commands {'globally' if spec is None else 'to the current guild.'}"
         )
-        main_log.info(f"Synced {len(synced)} commands {'globally' if spec is None else 'to the current guild.'}")
+        main_log.info(
+            f"Synced {len(synced)} commands {'globally' if spec is None else 'to the current guild.'}"
+        )
         return
 
 
@@ -94,23 +101,24 @@ async def on_app_command_error(
         return
     elif isinstance(error, app_commands.MissingPermissions):
         await interaction.response.send_message(
-            f"sorry You dont have the required permissions to use this command", ephemeral=True
+            f"sorry You dont have the required permissions to use this command",
+            ephemeral=True,
         )
         return
     elif isinstance(error, app_commands.BotMissingPermissions):
         await interaction.response.send_message(
-            f"sorry the bot doesn't have required permissions in this channel to perform that action", ephemeral=True
+            f"sorry the bot doesn't have required permissions in this channel to perform that action",
+            ephemeral=True,
         )
         return
     elif isinstance(error, app_commands.MissingPermissions):
         await interaction.response.send_message(
-            f"sorry you don't have required permissions in this channel to perform that action", ephemeral=True
+            f"sorry you don't have required permissions in this channel to perform that action",
+            ephemeral=True,
         )
         return
     elif isinstance(error, app_commands.CommandInvokeError):
-        await interaction.followup.send(
-            f"invoke error", ephemeral=True
-        )
+        await interaction.followup.send(f"invoke error", ephemeral=True)
         main_log.error(error)
         return
     else:
@@ -120,20 +128,31 @@ async def on_app_command_error(
         )
         main_log.error(error)
         return
-        
+
+
 # Custom help command
-@bot.command()
-async def help(ctx):
-    """Show this help context"""
+@bot.tree.command()
+async def help(interaction: discord.Interaction):
+    """Show help context"""
     visible_commands = []
-    help_embed = discord.Embed(title='Help Context', color=discord.Color.red(), description='list of legacy commands')
+    help_embed = discord.Embed(
+        title="Help Context",
+        color=discord.Color.red(),
+        description=f"commands found here MUST be invoked with {bot.command_prefix}",
+    )
     for command in bot.commands:
         if not command.hidden:
             visible_commands.append(command)
-    visible_commands_str = '\n'.join([f'{bot.command_prefix}{command.name} -> {command.help}' for command in visible_commands])
-    help_embed.add_field(name="", value=f"{visible_commands_str}\n",inline=False)
-        
-    await ctx.send(embed=help_embed)
+    visible_commands_str = "\n".join(
+        [
+            f"{bot.command_prefix}{command.name} -> {command.help}"
+            for command in visible_commands
+        ]
+    )
+    help_embed.add_field(name="", value=f"{visible_commands_str}\n", inline=False)
+
+    await interaction.response.send_message(embed=help_embed, ephemeral=True)
+
 
 ## error handling for commands
 @bot.event
@@ -153,8 +172,9 @@ tracemalloc.start()
 timestamp = datetime.datetime.utcnow()
 
 
-async def main():  
+async def main():
     await bot.start(TOKEN)
+
 
 # Run the bot
 asyncio.run(main())
